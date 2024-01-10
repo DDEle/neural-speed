@@ -11,9 +11,7 @@
 *.so.*
 
 
-.vs
-.vscode
-__pycache__
+/.vs
 /out
 .vscode/
 .vscode/*
@@ -25,5 +23,6 @@ debug/
 .eggs/
 dist/
 runtime_outs/
+__pycache__
 CMakeUserPresets.json
 *.egg-info
