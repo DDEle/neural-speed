@@ -80,6 +80,7 @@ struct attn_fwd_args_t {
   int step_k_bs, step_k_head_num, step_k_sl, step_k_head_size;
   int step_v_bs, step_v_head_num, step_v_sl, step_v_head_size;
   int step_dst_bs, step_dst_head_num, step_dst_sl;
+  int n_prompt;  // caller grantees that K/V for first n_prompt tokens are identical among batches
 };
 
 struct MHAProblem {
@@ -1058,10 +1059,14 @@ class WeightBase {
     const SType* B;
     int ldb;
     bool is_padded;
+    const SType* B_alt;  // alternative high-performance B used before k/n
+    int k_alt_cutoff;    // use B_alt before k_alt_cutoff
+    int n_alt_cutoff;    // use B_alt before n_alt_cutoff
   };
   WeightBase() = default;
   BTLA_CODE getWeight(BType** dst_ptr, int* dst_step, const Param& p, int k_size, int n_size, int k_offset,
                       int n_offset, void* /* tmpcache */, size_t /* cachesize */) {
+    assert(("Not Implemented!", p.k_alt_cutoff == 0 && p.n_alt_cutoff == 0));
     if ((n_size % _GemmCore_T::NTILE == 0) && std::is_same<SType, BType>::value &&
         0) {  // TODO(Yi) : use a gemm core accept step for K or reorder at runtime
       *dst_ptr = const_cast<SType*>(p.B) + k_offset * p.ldb + n_offset;
@@ -1091,13 +1096,19 @@ class WeightForwardNTile48 {
     const SType* B;
     int ldb;
     bool is_padded;
+    const SType* B_alt;  // alternative high-performance B used before k/n
+    int k_alt_cutoff;    // use B_alt before k_alt_cutoff
+    int n_alt_cutoff;    // use B_alt before n_alt_cutoff
   };
   WeightForwardNTile48() = default;
   BTLA_CODE getWeight(BType** dst_ptr, int* dst_step, const Param& p, int k_size, int n_size, int k_offset,
                       int n_offset, void* /* tmpcache */, size_t /* cachesize */) {
     assert(p.is_padded);
-    *dst_ptr = const_cast<SType*>(p.B) + k_offset * 48 + n_offset * p.ldb;
+    assert(("Use one of them only!", p.k_alt_cutoff * p.n_alt_cutoff == 0));
+    const auto B = (k_size + k_offset <= p.k_alt_cutoff) || (n_size + n_offset <= p.n_alt_cutoff) ? p.B_alt : p.B;
+    *dst_ptr = const_cast<SType*>(B) + k_offset * 48 + n_offset * p.ldb;
     *dst_step = p.ldb;
+    // if (B == p.B_alt && B != p.B) printf("!");
     return BTLA_CODE::Success;
   }
 };
@@ -1387,8 +1398,8 @@ class MHAStableInterface {
         for (int task_id = task_start; task_id < task_start + task_size; ++task_id) {
           const int ibat = task_id / m_tiles;
           const int i_m = task_id % m_tiles * M_TILE;
-          const int ibs = ibat / p.head_num;
-          const int ihn = ibat % p.head_num;
+          const int ibs = ibat % p.batch_size;
+          const int ihn = ibat / p.batch_size;
           const int ihkv = ihn / group_heads;
           const int m_size = std::min(M_TILE, p.sl_q - i_m);
 
@@ -1404,6 +1415,8 @@ class MHAStableInterface {
           const auto head_q = p.Q + ibs * p.step_q_bs + ihn * p.step_q_head_num;
           const auto head_k = p.K + ibs * p.step_k_bs + ihkv * p.step_k_head_num;
           const auto head_v = p.V + ibs * p.step_v_bs + ihkv * p.step_v_head_num;
+          const auto head_k_bs0 = p.K + ihkv * p.step_k_head_num;  // bs here is beam
+          const auto head_v_bs0 = p.V + ihkv * p.step_v_head_num;  // bs here is beam
           const auto head_dst = p.dst + ibs * p.step_dst_bs + ihn * p.step_dst_head_num;
           const auto unmasked_size = is_causal ? std::min(p.sl_kv, sl_diff + i_m + M_TILE - 1 + 1) : p.sl_kv;
 
@@ -1441,6 +1454,9 @@ class MHAStableInterface {
                       /* .B = */ head_k,
                       /* .ldb = */ qk_prok_ldb,
                       /* .is_padded = */ true,
+                      /* .B_alt = */ head_k_bs0,
+                      /* .k_alt_cutoff = */ 0,
+                      /* .n_alt_cutoff = */ p.n_prompt,
                   },  // K should be pre-transposed
                   /* .paramC = */
                   QKEpiArgs{
@@ -1491,6 +1507,9 @@ class MHAStableInterface {
                       /* .B = */ head_v,
                       /* .ldb = */ pv_prov_ldb,
                       /* .is_padded = */ true,
+                      /* .B_alt = */ head_v_bs0,
+                      /* .k_alt_cutoff = */ p.n_prompt,
+                      /* .n_alt_cutoff = */ 0,
                   },
                   /* .paramC = */
                   composeEpiArgs<PVEpiArgs, std::is_same<V_T, int8_t>::value>(  //
@@ -1936,7 +1955,9 @@ void bestla_reordered_attn_fp32_forward(const bestla_reordered_attn_fp32_fp32_fw
       /* .step_dst_bs = */ params->step_dst_bs,
       /* .step_dst_head_num = */ params->step_dst_head_num,
       /* .step_dst_sl = */ params->step_dst_sl,
+      /* .n_prompt = */ params->n_prompt,
   };
+  // printf("params->n_prompt %d\n", params->n_prompt);
   return bestla_fusion_attn_forward<float, bf16, bf16, float>(bestla_params);
 }
 
