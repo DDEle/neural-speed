@@ -2770,11 +2770,23 @@ const std::vector<std::vector<model_token>>& beam_search_flow::loop(const std::v
   for (int n = 0; n < max_new_tokens; ++n) {
     // first step
     if (n_past.front() == 0) {
-      model_eval(ctx, inputs.data(), inputs.size(), num_threads);
+      ctx->batch_size = 1;  // eval first token one-by-one
+      std::vector<float> batches_logits{};
       for (int ni = 0; ni < inputs.size(); ++ni) {
+        model_eval(ctx, &inputs[ni], 1, num_threads);
         n_past[ni] += n_tokens[ni];
         n_total[ni] += n_tokens[ni];
+        if (ni == 0) {
+          batches_logits = std::move(ctx->logits);
+          ctx->logits = {};
+          batches_logits.reserve(batches_logits.size() * inputs.size());
+        } else {
+          std::copy(ctx->logits.cbegin(), ctx->logits.cend(), std::back_inserter(batches_logits));
+        }
       }
+      ctx->batch_size = inputs.size();          // recover batchsize
+      ctx->logits = std::move(batches_logits);  //  recover logits
+
       kv_reorder->update(n_past, n_prompt_tokens, request_running_indices);
       std::vector<float> beam_scores(ctx->batch_size, 0.0f);
       std::vector<int> num_beams(ctx->request_running_bs, 1);
