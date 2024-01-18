@@ -436,7 +436,7 @@ static bool gptj_model_eval_internal(model_context* ctx, const model_input* inpu
         NE_ASSERT(inputs[bi].n_prompt_tokens == inputs[curr_group[0]].n_prompt_tokens);
       }
 #endif
-      const auto n_prompt = curr_group.size() == 1 ? 0 : inputs[curr_group[0]].n_prompt_tokens;
+      const int n_prompt = curr_group.size() == 1 ? 0 : inputs[curr_group[0]].n_prompt_tokens;
       // const auto n_prompt = 0;
       if (attn_n_total == 0 || !shift_roped_k)
         attn_flags |= NE_ATTN_FLAG_IS_CAUSAL;  // no causal mask on next-token cases

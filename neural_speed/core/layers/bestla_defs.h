@@ -41,6 +41,9 @@ using tAVX_VNNI_KBlock = gemm::ICoreRowNAvxvnniKBlock<24, 2>;
 using tAVX512_VNNI_KBlock = gemm::ICoreRowNAvx512vnniKBlock<48, 4>;
 using tAMX_INT8_US_KBlock = gemm::ICoreRowNAmxint8KBlock<48, 16>;
 using tAMX_INT8_SS_KBlock = gemm::ICoreRowNAmxint8SSKBlock<48, 16>;
+// using tAVX512_VNNI_KBlock = gemm::ICoreRowNAvx512vnniKBlock<32, 4>;
+// using tAMX_INT8_US_KBlock = gemm::ICoreRowNAmxint8KBlock<32, 32>;
+// using tAMX_INT8_SS_KBlock = gemm::ICoreRowNAmxint8SSKBlock<32, 32>;
 
 template <class GC_T, BTLA_ISA ISA_T>
 using tWeiNInt = prologue_b::gemm::WeightKBlockNInteger<GC_T, ISA_T>;

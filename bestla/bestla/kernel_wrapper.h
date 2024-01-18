@@ -602,16 +602,16 @@ class AlphaBetaF32F32 {
   static BTLA_CODE forward(const float alpha, const float* srcptr, const int srcstep, const float beta,
                            const float* src1ptr, const int src1step, float* dstptr, const int dststep, const int M,
                            const int N) {
-#if CompileAVX512F()
-    if constexpr (utils::isa_base<ISA_T>::avx512f) {
-      return avx512f::alphabeta_f32_f32(alpha, srcptr, srcstep, beta, src1ptr, src1step, dstptr, dststep, M, N);
-    }
-#endif
-#if CompileAVX2()
-    if (utils::isa_base<ISA_T>::avx2) {
-      return avx2::alphabeta_f32_f32(alpha, srcptr, srcstep, beta, src1ptr, src1step, dstptr, dststep, M, N);
-    }
-#endif
+// #if CompileAVX512F()
+//     if constexpr (utils::isa_base<ISA_T>::avx512f) {
+//       return avx512f::alphabeta_f32_f32(alpha, srcptr, srcstep, beta, src1ptr, src1step, dstptr, dststep, M, N);
+//     }
+// #endif
+// #if CompileAVX2()
+//     if (utils::isa_base<ISA_T>::avx2) {
+//       return avx2::alphabeta_f32_f32(alpha, srcptr, srcstep, beta, src1ptr, src1step, dstptr, dststep, M, N);
+//     }
+// #endif
     return ref::alphabeta_f32_f32(alpha, srcptr, srcstep, beta, src1ptr, src1step, dstptr, dststep, M, N);
   }
 };
