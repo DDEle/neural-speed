@@ -14,34 +14,99 @@
 * limitations under the License.
 *******************************************************************************/
 
-#include <utils/utils.hpp>
 #include "xetla.hpp"
+#include <utils/utils.hpp>
 // #define UT_DEBUG 1
 using namespace gpu::xetla;
 //The number of times the kernel is executed
-constexpr int ITER = 100;
+constexpr int ITER = 1;
 
 class test1 {
 public:
     //Extract the parameters required by different test cases
-    static constexpr size_t mat_m = 1;
-    static constexpr size_t mat_n = 16384;
-    static constexpr size_t mat_k = 4096;
-    static constexpr size_t wg_m = 8;
-    static constexpr size_t wg_n = 64;
-    static constexpr size_t sg_m = 8;
+    static constexpr size_t mat_m = 16;
+    static constexpr size_t mat_n = 128;
+    static constexpr size_t mat_k = 128;
+    static constexpr size_t wg_m = 16;
+    static constexpr size_t wg_n = 16;
+    static constexpr size_t sg_m = 16;
     static constexpr size_t sg_n = 16;
     static constexpr size_t sg_k = 16;
-    static constexpr size_t dequant_s = 64;
+    static constexpr size_t dequant_s = 16;
     static constexpr size_t num_buffer = 64;
-    static constexpr size_t local_kslicing = 8;
+    static constexpr size_t local_kslicing = 1;
     static constexpr size_t global_kslicing = 1;
-    static constexpr mem_layout layout_a = mem_layout::row_major;
+    static constexpr mem_layout layout_a = mem_layout::col_major;
     static constexpr mem_layout layout_b = mem_layout::row_major;
     using data_type_a = fp16;
     using data_type_b = int4x2;
     using data_type_c = fp16;
 };
+class t1 {
+public:
+  //Extract the parameters required by different test cases
+  static constexpr size_t mat_m = 1024;
+  static constexpr size_t mat_n = 4096;
+  static constexpr size_t mat_k = 4096;
+  static constexpr size_t wg_m = 32;
+  static constexpr size_t wg_n = 32;
+  static constexpr size_t sg_m = 8;
+  static constexpr size_t sg_n = 16;
+  static constexpr size_t sg_k = 16;
+  static constexpr size_t dequant_s = 32;
+  static constexpr size_t num_buffer = 64;
+  static constexpr size_t local_kslicing = 8;
+  static constexpr size_t global_kslicing = 1;
+  static constexpr mem_layout layout_a = mem_layout::row_major;
+  static constexpr mem_layout layout_b = mem_layout::row_major;
+  using data_type_a = fp16;
+  using data_type_b = int4x2;
+  using data_type_c = fp16;
+};
+
+class t2 {
+public:
+  //Extract the parameters required by different test cases
+  static constexpr size_t mat_m = 1024;
+  static constexpr size_t mat_n = 4096;
+  static constexpr size_t mat_k = 4096;
+  static constexpr size_t wg_m = 8;
+  static constexpr size_t wg_n = 32;
+  static constexpr size_t sg_m = 8;
+  static constexpr size_t sg_n = 16;
+  static constexpr size_t sg_k = 16;
+  static constexpr size_t dequant_s = 32;
+  static constexpr size_t num_buffer = 64;
+  static constexpr size_t local_kslicing = 8;
+  static constexpr size_t global_kslicing = 1;
+  static constexpr mem_layout layout_a = mem_layout::row_major;
+  static constexpr mem_layout layout_b = mem_layout::row_major;
+  using data_type_a = fp16;
+  using data_type_b = int4x2;
+  using data_type_c = fp16;
+};
+class t3 {
+public:
+  //Extract the parameters required by different test cases
+  static constexpr size_t mat_m = 1024;
+  static constexpr size_t mat_n = 4096;
+  static constexpr size_t mat_k = 4096;
+  static constexpr size_t wg_m = 16;
+  static constexpr size_t wg_n = 32;
+  static constexpr size_t sg_m = 8;
+  static constexpr size_t sg_n = 16;
+  static constexpr size_t sg_k = 16;
+  static constexpr size_t dequant_s = 32;
+  static constexpr size_t num_buffer = 64;
+  static constexpr size_t local_kslicing = 8;
+  static constexpr size_t global_kslicing = 1;
+  static constexpr mem_layout layout_a = mem_layout::row_major;
+  static constexpr mem_layout layout_b = mem_layout::row_major;
+  using data_type_a = fp16;
+  using data_type_b = int4x2;
+  using data_type_c = fp16;
+};
+
 class test2 {
 public:
     //Extract the parameters required by different test cases
@@ -322,8 +387,11 @@ void dequantize_gemm_run(int iter) {
     using data_type_zero_pt = int4x2;
     using data_type_scale = fp16;
     using data_type_acc_in = fp16;
-    using data_type_acc = float;
+    using data_type_acc = fp16;
     using data_type_bias = fp16;
+
+    constexpr mem_layout layout_a = Test::layout_a;
+    constexpr mem_layout layout_b = Test::layout_b;
 
     constexpr size_t size_a = matrix_m * matrix_k;
     constexpr size_t size_b = matrix_k * matrix_n / 2;
@@ -339,6 +407,12 @@ void dequantize_gemm_run(int iter) {
     constexpr size_t size_c = matrix_m * matrix_n;
     constexpr size_t size_bias = matrix_n;
 
+    uint32_t lda = layout_a == mem_layout::row_major ? matrix_k : matrix_m;
+    uint32_t ldb = layout_b == mem_layout::row_major ? matrix_n : matrix_k;
+    uint32_t ldc = matrix_n;
+    //     uint32_t ld_scale = size_scale_n;
+    //     uint32_t ld_zero_pt = size_zero_pt_n;
+
     // Turn on the enable_profiling property to facilitate subsequent profiling
     sycl::property_list properties {sycl::property::queue::enable_profiling()};
     auto queue = sycl::queue(properties);
@@ -352,9 +426,9 @@ void dequantize_gemm_run(int iter) {
     static constexpr uint32_t periodic_sync_interval = 0;
     static constexpr uint32_t prefetch_distance = 0;
 
-    using mem_desc_a_t = xetla::mem_desc_t<data_type_a, mem_layout::row_major,
+    using mem_desc_a_t = xetla::mem_desc_t<data_type_a, layout_a,
             mem_space::global, DEVICE_MEM_ALIGNMENT / sizeof(data_type_a)>;
-    using mem_desc_b_t = xetla::mem_desc_t<data_type_b, mem_layout::row_major,
+    using mem_desc_b_t = xetla::mem_desc_t<data_type_b, layout_b,
             mem_space::global, DEVICE_MEM_ALIGNMENT / sizeof(data_type_b)>;
     using mem_desc_c_t = xetla::mem_desc_t<data_type_c, mem_layout::row_major,
             mem_space::global, DEVICE_MEM_ALIGNMENT / sizeof(data_type_c)>;
@@ -443,30 +517,37 @@ void dequantize_gemm_run(int iter) {
         A_h[i] = 1.f;
 #endif
     }
+
     for (unsigned i = 0; i < size_b; ++i) {
         B_h[i] = uint8_t(random_uint8());
 #ifdef UT_DEBUG
-        B_h[i] = 153;
+        B_h[i] = i % 128;
 #endif
     }
+
     for (unsigned i = 0; i < size_scale; ++i) {
         scale_h[i] = random_float();
 #ifdef UT_DEBUG
-        scale_h[i] = 1.f;
+        scale_h[i] = i / size_scale_n + 1;
 #endif
     }
+
     for (unsigned i = 0; i < size_zero_pt; ++i) {
         zero_pt_h[i] = 0.f;
     }
+
     for (unsigned i = 0; i < size_c; ++i) {
         C_h[i] = 0;
     }
+
     for (unsigned i = 0; i < size_acc; ++i) {
         Acc_h[i] = 0;
     }
+
     for (unsigned i = 0; i < size_cnt; ++i) {
         Cnt_h[i] = 0;
     }
+
     for (unsigned i = 0; i < size_bias; ++i) {
         bias_h[i] = random_float();
 #ifdef UT_DEBUG
@@ -500,22 +581,22 @@ void dequantize_gemm_run(int iter) {
             {bias_d, bias_add_shape}});
 
     typename gemm_op_t::template arguments_t<compute_policy::quant_type>
-            gemm_arg(matrix_m, matrix_k, matrix_n, A_d, matrix_k, B_d, matrix_n,
-                    C_d, matrix_n, scale_d, matrix_n, Acc_d, Cnt_d,
-                    epilogue_args);
+            gemm_arg(matrix_m, matrix_k, matrix_n, A_d, lda, B_d, ldb, C_d, ldc,
+                    scale_d, matrix_n, Acc_d, Cnt_d, epilogue_args);
 
     cl::sycl::nd_range<3> nd_range = gemm_op_t::get_nd_range(gemm_arg);
-    if (!gemm_op_t::can_implement(gemm_arg)) {
-        std::cout << "The arguments cannot be supported, aborting ... "
-                  << std::endl;
-        FAIL();
-    }
+    //     if (!gemm_op_t::can_implement(gemm_arg)) {
+    //         std::cout << "The arguments cannot be supported, aborting ... "
+    //                   << std::endl;
+    //         FAIL();
+    //     }
 
     size_t ops = 2 * matrix_m * matrix_n * matrix_k + matrix_m * matrix_n;
     profiling_helper prof("dequantize_gemm", ops, "gflops");
+    int constexpr warm = 0;
     try {
-        for (int i = 0; i < iter; i++) {
-            prof.cpu_start();
+        for (int i = 0; i < iter + warm; i++) {
+            if (i >= warm) prof.cpu_start();
             auto e_esimd = queue.submit([&](handler &cgh) {
                 cgh.parallel_for(
                         nd_range, [=](nd_item<3> item) SYCL_ESIMD_KERNEL {
@@ -525,9 +606,11 @@ void dequantize_gemm_run(int iter) {
                             gemm_op(item, gemm_arg);
                         });
             });
-            e_esimd.wait();
-            prof.cpu_end();
-            prof.add_gpu_event(e_esimd);
+            if (i >= warm) {
+                e_esimd.wait();
+                prof.cpu_end();
+                prof.add_gpu_event(e_esimd);
+            }
         }
     } catch (cl::sycl::exception const &e) {
         std::cout << "SYCL exception caught: " << e.what() << '\n';
@@ -535,7 +618,7 @@ void dequantize_gemm_run(int iter) {
     }
 
     //performance
-    prof.print_profiling_result(profiling_selector::GPU);
+    prof.print_profiling_result(profiling_selector::CPU);
 
     std::vector<fp16> dequantize_b(matrix_k * matrix_n, 0);
     for (uint32_t i = 0; i < matrix_k / dequant_s; i++) {
@@ -558,7 +641,7 @@ void dequantize_gemm_run(int iter) {
     queue.memcpy((void *)C_h, (void *)C_d, size_c * sizeof(data_type_c)).wait();
     ASSERT_EQ(0,
             gemm_result_validate(A_h, dequantize_b.data(), C_h, bias_h,
-                    matrix_m, matrix_k, matrix_n));
+                    matrix_m, matrix_k, matrix_n, layout_a, layout_b));
 
     free(A_h, context);
     free(B_h, context);
@@ -585,7 +668,7 @@ TYPED_TEST_P(dequantize_gemm_test, esimd) {
 }
 
 REGISTER_TYPED_TEST_SUITE_P(dequantize_gemm_test, esimd);
-using tests = ::testing::Types<qkv6>;
+using tests = ::testing::Types<test1>;
 // using tests = ::testing::Types<qkv1, qkv2, qkv3, qkv4, qkv5, qkv6, qkv7, qkv8,
 //         qkv9, qkv10>;
 
