@@ -38,6 +38,111 @@
 #include "bestla/bestla_prologue_a.h"
 #include "bestla/bestla_storage.h"
 #include "bestla/bestla_wrapper.h"
+class MY_TOOLS {
+#ifdef WITH_GCC_FLAGS
+#pragma GCC push_options
+#pragma GCC optimize "no-strict-aliasing"
+#endif
+  static inline float make_fp32(uint16_t x) {
+    unsigned int y = static_cast<unsigned int>(x);
+    y = y << 16;
+    float* res = reinterpret_cast<float*>(&y);
+    return *res;
+  }
+
+  static inline uint16_t make_bf16(float x) {
+    int* res = reinterpret_cast<int*>(&x);
+    *res = *res >> 16;
+    return (uint16_t)*res;
+  }
+#ifdef WITH_GCC_FLAGS
+#pragma GCC pop_options
+#endif
+
+ public:
+  static void print_matrix(const float* d, int ld, int m, int n) {
+    for (int i = 0; i < m; i++) {
+      for (int j = 0; j < n; j++) {
+        printf("%+e ", d[i * ld + j]);
+      }
+      printf("\n");
+      fflush(stdout);
+    }
+  }
+  static void print_matrix(const int* d, int ld, int m, int n) {
+    for (int i = 0; i < m; i++) {
+      for (int j = 0; j < n; j++) {
+        printf("%d ", d[i * ld + j]);
+      }
+      printf("\n");
+      fflush(stdout);
+    }
+  }
+  static void print_matrix(const int8_t* d, int ld, int m, int n) {
+    for (int i = 0; i < m; i++) {
+      for (int j = 0; j < n; j++) {
+        printf("%hhd ", d[i * ld + j]);
+      }
+      printf("\n");
+      fflush(stdout);
+    }
+  }
+  static void print_matrix(const uint8_t* d, int ld, int m, int n) {
+    for (int i = 0; i < m; i++) {
+      for (int j = 0; j < n; j++) {
+        printf("%hhu ", d[i * ld + j]);
+      }
+      printf("\n");
+      fflush(stdout);
+    }
+  }
+#if 1
+  static void print_matrix(const bestla::utils::bf16* d, int ld, int m, int n) {
+    for (int i = 0; i < m; i++) {
+      for (int j = 0; j < n; j++) {
+        printf("%+e ", static_cast<float>(d[i * ld + j]));
+      }
+      printf("\n");
+      fflush(stdout);
+    }
+  }
+  static void print_matrix(const bestla::utils::fp16* d, int ld, int m, int n) {
+    for (int i = 0; i < m; i++) {
+      for (int j = 0; j < n; j++) {
+        printf("%+e ", static_cast<float>(d[i * ld + j]));
+      }
+      printf("\n");
+      fflush(stdout);
+    }
+  }
+#endif
+#if 0
+  static void print_matrix(const bfloat16_t* d, int ld, int m, int n) {
+    for (int i = 0; i < m; i++) {
+      for (int j = 0; j < n; j++) {
+        printf("%+e ", static_cast<float>(d[i * ld + j]));
+      }
+      printf("\n");
+      fflush(stdout);
+    }
+  }
+#endif
+#if 1
+  static void print_matrix(const uint16_t* d, int ld, int m, int n) {
+    for (int i = 0; i < m; i++) {
+      for (int j = 0; j < n; j++) {
+        printf("%+e ", make_fp32(d[i * ld + j]));
+      }
+      printf("\n");
+      fflush(stdout);
+    }
+  }
+#endif
+  static void print_text(const char* s) {
+    printf(s);
+    fflush(stdout);
+  }
+};
 
 #define MHA_2ND_EXP 1
 constexpr bool MHA_PREFER_AVX512FP16 = true;
@@ -1499,6 +1604,11 @@ class mha_stable_interface_t {
                   // /* .workspace = */ nullptr,
               },
               tpPV);
+          // if (ihn == 0 && ibs == 0 && i_m == 0) {
+          //   MY_TOOLS::print_text("\nmha_dst:\n");
+          //   MY_TOOLS::print_matrix(head_dst, 0, 1, 64);
+          //   exit(1);
+          // }
         }
       }
     });

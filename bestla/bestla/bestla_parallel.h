@@ -485,6 +485,7 @@ class SchedulerKBlockS : public SchedulerBase<_GemmCore_T> {
   void update(const Config& config) {
     mKBlock = config.problem.dims[4];
     BaseScheduler::update(config);
+    this->mBlock[2] = 128;
     auto blks = utils::updiv(this->mBlock[2], mKBlock);
     this->mL2Use += static_cast<size_t>(blks) * (this->mBlock[1] + this->mStep[0]) *
                     (sizeof(float) + sizeof(int8_t) + sizeof(float));  // scale+zp+reduce

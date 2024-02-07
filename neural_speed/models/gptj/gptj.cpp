@@ -85,6 +85,21 @@ static bool gptj_model_eval_internal(model_context* ctx, const model_input* inpu
   const int infer_bs = lctx.cont_batching ? 1 : batch_size;
   const int infer_seq_len = lctx.cont_batching ? seq_len_sum : N;
   const std::vector<std::vector<int>> infer_groups = split_inputs_into_groups(inputs, n_input);
+  if (std::any_of(n_pasts.cbegin(), n_pasts.cend(), [](const int i) { return i == 0; })) {
+    for (const auto& g : infer_groups) {
+      for (const auto i : g) {
+        printf("%d ", i);
+      }
+      printf("; ");
+    }
+    printf("\n");
+    printf(
+        "n_sample: %d n_eval: %d n_p_eval: %d n_ctx: %d n_keep: %d max_request_num: %d request_running_bs: %d "
+        "batch_size: %d kv_n_ctx_block: %d logits_all: %d\n",
+        lctx.n_sample, lctx.n_eval, lctx.n_p_eval, lctx.n_ctx, lctx.n_keep, lctx.max_request_num,
+        lctx.request_running_bs, lctx.batch_size, lctx.kv_n_ctx_block, lctx.logits_all);
+    fflush(stdout);
+  }
   const auto& model = lctx.model;
   const auto& hparams = model.hparams;
 
@@ -165,6 +180,20 @@ static bool gptj_model_eval_internal(model_context* ctx, const model_input* inpu
   int cpy_off = 0;
   for (int i = 0; i < batch_size; ++i) {
     memcpy(static_cast<model_token*>(embd->data) + cpy_off, inputs[i].tokens, n_tokens[i] * ne_element_size(embd));
+    if (n_pasts[i] == 0) {
+      printf("n_pasts[%d]: ", i);
+      for (int j = 0; j < n_tokens[i]; ++j) {
+        printf("%d ", inputs[i].tokens[j]);
+      }
+      printf("\n");
+
+      printf(
+          "n_tokens: %u n_prompt_tokens: %u n_past: %u n_total: %u request_idx: %d beam_idx: %d padding_side: %d "
+          "n_padding: %u\n",
+          inputs[i].n_tokens, inputs[i].n_prompt_tokens, inputs[i].n_past, inputs[i].n_total, inputs[i].request_idx,
+          inputs[i].beam_idx, inputs[i].padding_side, inputs[i].n_padding);
+      fflush(stdout);
+    }
     cpy_off += n_tokens[i];
   }
 
@@ -185,6 +214,20 @@ static bool gptj_model_eval_internal(model_context* ctx, const model_input* inpu
 
     ne_tensor *Qcur, *Kcur, *Vcur;
     int kv_n_ctx_block = lctx.kv_n_ctx_block;
+    if (std::any_of(n_pasts.cbegin(), n_pasts.cend(), [](const int i) { return i == 0; })) {
+      if (il < 1) {
+        cur = ne_debug_op(ctx0, cur, [](const struct ne_tensor* t) {
+          const auto d = reinterpret_cast<float*>(t->data);
+          printf("cur[%d]: ", t->ne[0]);
+          for (int i = 0; i < t->ne[0]; ++i) {
+            printf("%+20.12e ", d[i]);
+          }
+          printf("\n");
+          fflush(stdout);
+          return;
+        });
+      }
+    }
     if (bestla_fusion_QKV_f32f32_support(model.layers[il].attn[0]->data, model.layers[il].attn[1]->data,
                                          model.layers[il].attn[2]->data, seq_len_sum, head_size * n_head,
                                          head_size * n_head)) {  // fused execution of QKV
@@ -198,6 +241,48 @@ static bool gptj_model_eval_internal(model_context* ctx, const model_input* inpu
       Kcur = ne_reshape_4d(ctx0, ne_view_1d(ctx0, QKVcur, qkv_size, 1 * qkv_bytes), head_size, n_head, infer_seq_len,
                            infer_bs);
       Vcur = ne_view_1d(ctx0, QKVcur, qkv_size, 2 * qkv_bytes);
+      if (std::any_of(n_pasts.cbegin(), n_pasts.cend(), [](const int i) { return i == 0; })) {
+        if (il < 1) {
+          Qcur = ne_debug_op(ctx0, Qcur, [](const struct ne_tensor* t) {
+            const auto d = reinterpret_cast<float*>(t->data);
+            printf("Qcur: ");
+            for (int i = 0; i < 16; ++i) {
+              printf("%+20.12e ", d[i]);
+            }
+            printf("\n");
+            fflush(stdout);
+            return;
+          });
+        }
+      }
+      if (std::any_of(n_pasts.cbegin(), n_pasts.cend(), [](const int i) { return i == 0; })) {
+        if (il < 1) {
+          Kcur = ne_debug_op(ctx0, Kcur, [](const struct ne_tensor* t) {
+            const auto d = reinterpret_cast<float*>(t->data);
+            printf("Kcur: ");
+            for (int i = 0; i < 16; ++i) {
+              printf("%+20.12e ", d[i]);
+            }
+            printf("\n");
+            fflush(stdout);
+            return;
+          });
+        }
+      }
+      if (std::any_of(n_pasts.cbegin(), n_pasts.cend(), [](const int i) { return i == 0; })) {
+        if (il < 1) {
+          Vcur = ne_debug_op(ctx0, Vcur, [](const struct ne_tensor* t) {
+            const auto d = reinterpret_cast<float*>(t->data);
+            printf("Vcur: ");
+            for (int i = 0; i < 16; ++i) {
+              printf("%+20.12e ", d[i]);
+            }
+            printf("\n");
+            fflush(stdout);
+            return;
+          });
+        }
+      }
     } else {
       Qcur = ne_reshape_4d(ctx0, ne_mul_mat(ctx0, model.layers[il].attn[0], cur), head_size, n_head, infer_seq_len,
                            infer_bs);
@@ -492,6 +577,20 @@ static bool gptj_model_eval_internal(model_context* ctx, const model_input* inpu
         // KQV_merged = KQV.permute(0, 2, 1, 3)
         KQV_merged_gi = ne_permute(ctx0, KQV, 0, 2, 1, 3);
       }
+      if (std::any_of(n_pasts.cbegin(), n_pasts.cend(), [](const int i) { return i == 0; })) {
+        if (il < 1) {
+          KQV_merged_gi = ne_debug_op(ctx0, KQV_merged_gi, [](const struct ne_tensor* t) {
+            const auto d = reinterpret_cast<float*>(t->data);
+            printf("KQV_merged_gi: ");
+            for (int i = 0; i < 16; ++i) {
+              printf("%+20.12e ", d[i]);
+            }
+            printf("\n");
+            fflush(stdout);
+            return;
+          });
+        }
+      }
       ne_set_name(KQV_merged_gi, std::string("KQV_merged_" + suffix).c_str());
       ne_build_forward_expand(&gf, ne_cpy(ctx0, KQV_merged_gi,
                                           ne_view_2d(ctx0, KQV_merged_contiguous, head_size * n_head, attn_sl * attn_bs,
@@ -500,10 +599,38 @@ static bool gptj_model_eval_internal(model_context* ctx, const model_input* inpu
       off_sl += head_size * n_head * attn_sl * attn_bs;
     }
     ne_set_name(KQV_merged_contiguous, "KQV_merged_contiguous");
+    if (std::any_of(n_pasts.cbegin(), n_pasts.cend(), [](const int i) { return i == 0; })) {
+      if (il < 1) {
+        KQV_merged_contiguous = ne_debug_op(ctx0, KQV_merged_contiguous, [](const struct ne_tensor* t) {
+          const auto d = reinterpret_cast<float*>(t->data);
+          printf("KQV_merged_contiguous: ");
+          for (int i = 0; i < 16; ++i) {
+            printf("%+20.12e ", d[i]);
+          }
+          printf("\n");
+          fflush(stdout);
+          return;
+        });
+      }
+    }
 
     // projection (no bias)
     struct ne_tensor* KQV_out = ne_mul_mat(ctx0, model.layers[il].attn[3], KQV_merged_contiguous);
     ne_set_name(KQV_out, "KQV_out");
+    if (std::any_of(n_pasts.cbegin(), n_pasts.cend(), [](const int i) { return i == 0; })) {
+      if (il < 1) {
+        KQV_out = ne_debug_op(ctx0, KQV_out, [](const struct ne_tensor* t) {
+          const auto d = reinterpret_cast<float*>(t->data);
+          printf("KQV_out: ");
+          for (int i = 0; i < 16; ++i) {
+            printf("%+20.12e ", d[i]);
+          }
+          printf("\n");
+          fflush(stdout);
+          return;
+        });
+      }
+    }
 
 #ifdef NS_TP_MODEL
     if (enable_tp) {
@@ -597,12 +724,21 @@ static bool gptj_model_eval_internal(model_context* ctx, const model_input* inpu
     } else {
       // return result for just the last token
       logits_out.resize(n_vocab * batch_size);
-#pragma omp parallel for
+      // #pragma omp parallel for
       for (int i = 0; i < batch_size; ++i) {
         size_t bs_off = std::accumulate(n_tokens.begin(), n_tokens.begin() + i, 0) * n_vocab;
         memcpy(logits_out.data() + (i * n_vocab),
                reinterpret_cast<float*>(ne_get_data(inpL)) + bs_off + (n_vocab * (n_tokens[i] - 1)),
                sizeof(float) * n_vocab);
+
+        if (n_pasts[i] == 0) {
+          printf("logits_out[%d]: ", i);
+          for (int j = 0; j < 16; ++j) {
+            printf("%+20.12e ", (logits_out.data() + (i * n_vocab))[j]);
+          }
+          printf("\n");
+          fflush(stdout);
+        }
       }
     }
   }

@@ -396,6 +396,8 @@ class logits_processor {
 
   void process(const std::vector<uint32_t>& cur_lens, const model_vocab::id& eos_token_id,
                const std::vector<uint32_t>& min_new_tokens = {});
+
+  // forbidden to choose eos_token if cur_len < min_new_tokens
   void min_new_tokens_logits_process(const std::vector<uint32_t>& cur_lens, const model_vocab::id& eos_token_id,
                                      const std::vector<uint32_t>& min_new_tokens);
 

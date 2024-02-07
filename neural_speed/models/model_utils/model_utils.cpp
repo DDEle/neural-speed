@@ -2138,6 +2138,21 @@ std::vector<beam_next_token> beam_search_flow::beam_top_k_next_tokens(model_cont
   const int raw_k = sample_scale * beam_size;
   // raw logits top_k
   std::vector<std::vector<beam_next_token>> raw_top_k = li.vocab_top_k(raw_k);
+  printf("\n");
+  for (int i = 0; i < ctx->batch_size; ++i) {
+    if (cur_lens[i] != 0) continue;
+    printf("cur_lens[i]:%d %d %d| ", cur_lens[i], sample_scale, beam_size);
+    const auto& cur_top_k = raw_top_k[i];
+    for (int j = 0; j < cur_top_k.size(); ++j) {
+      printf("%d,%d,%+e | ", cur_top_k[j].beam_idx, cur_top_k[j].id, cur_top_k[j].score);
+    }
+    printf("\n");
+    for (int j = 0; j < 16; ++j) {
+      printf("%+e,", li.logits[i * li.bs_stride + li.offset + j]);
+    }
+    printf("\n");
+    fflush(stdout);
+  }
   MODEL_ASSERT(raw_top_k.size() == ctx->batch_size);  // request_running_bs * num_beam
   MODEL_ASSERT(raw_top_k[0].size() == raw_k);
   MODEL_ASSERT(beams_score.size() == ctx->batch_size);
