@@ -89,11 +89,13 @@ void gemm_exec(const std::string &compile_str, size_t batch = 1) {
         std::vector<kernel_id> kernelId = {get_kernel_id<Test>()};
         auto inputBundle
                 = get_kernel_bundle<bundle_state::input>(context, kernelId);
-        static const std::string env_set_str = "SYCL_PROGRAM_COMPILE_OPTIONS="+compile_str;
-        putenv(const_cast<char*>(env_set_str.c_str()));
+        static const std::string env_set_str
+                = "SYCL_PROGRAM_COMPILE_OPTIONS=" + compile_str;
+        putenv(const_cast<char *>(env_set_str.c_str()));
         kernel_bundle<bundle_state::executable> exeBundle = build(inputBundle);
-        static const std::string env_unset_str = "SYCL_PROGRAM_COMPILE_OPTIONS=";
-        putenv(const_cast<char*>(env_unset_str.c_str()));
+        static const std::string env_unset_str
+                = "SYCL_PROGRAM_COMPILE_OPTIONS=";
+        putenv(const_cast<char *>(env_unset_str.c_str()));
 
         using namespace gpu::xetla::group;
         using namespace gpu::xetla::kernel;
@@ -227,3 +229,51 @@ void kernel_run(auto nd_range, auto validate_result) {
     free(B_host);
     free(C_host);
 }
+
+template <template <gpu_arch> class F>
+struct dispatch_arch {
+    static void exec() {
+        sycl::device device;
+        if (!device.has(aspect::ext_intel_device_id)) {
+            std::cout << "Can not get device ID\n";
+            return;
+        }
+        auto deviceID = device.get_info<ext::intel::info::device::device_id>();
+        std::cout << "deviceID: " << std::hex << deviceID << "\n";
+#if defined(SYCL_EXT_ONEAPI_DEVICE_ARCHITECTURE) \
+        && SYCL_EXT_ONEAPI_DEVICE_ARCHITECTURE
+        // https://github.com/intel/llvm/blob/sycl/sycl/doc/extensions/experimental/sycl_ext_oneapi_device_architecture.asciidoc#feature-test-macro
+        namespace ENS = sycl::ext::oneapi::experimental;
+        auto deviceArch = device.get_info<ENS::info::device::architecture>();
+        switch (deviceArch) {
+            case ENS::architecture::intel_gpu_pvc:
+                F<gpu_arch::Xe>::exec();
+                return;
+            case ENS::architecture::intel_gpu_dg2_g10:
+            case ENS::architecture::intel_gpu_dg2_g11:
+            case ENS::architecture::intel_gpu_dg2_g12:
+                F<gpu_arch::Dg2>::exec();
+                return;
+            default: break;
+        }
+
+#endif
+        std::cout << "No maching architecture, checking device ID ...\n";
+        switch (deviceID) {
+            // DG2 devices: https://gfxspecs.intel.com/Predator/Home/Index/44477
+            case 0x56a0: // Intel® Arc ™ A770 Graphics
+            case 0x56a1: // Intel® Arc ™ A750 Graphics
+            case 0x56a2: // Intel® Arc ™ A580 Graphics
+            case 0x5690: // Intel® Arc ™ A770M Graphics
+            case 0x5691: // Intel® Arc ™ A730M Graphics
+            case 0x5692: // Intel® Arc ™ A550M Graphics
+                F<gpu_arch::Dg2>::exec();
+                return;
+            // PVC devices: https://gfxspecs.intel.com/Predator/Home/Index/44484
+            case 0x0bda: //
+                F<gpu_arch::Xe>::exec();
+                return;
+            default: std::cout << "Unknown device ID \n"; return;
+        }
+    }
+};
