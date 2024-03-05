@@ -318,6 +318,8 @@ public:
             SW_BARRIER();
             subgroup::tile_load<cache_hint::cached, cache_hint::cached>(
                     matA, matA_payload);
+            if constexpr (!is_col_major_a) reorder_matA(matA);
+
             subgroup::tile_load<cache_hint::cached, cache_hint::cached>(
                     matB, matB_payload);
             matA_payload.template update_tdesc<update_dir_a>(
@@ -340,6 +342,24 @@ public:
             subgroup::elemwise_cvt(matB_acc, matB);
             pre_processing(matA_acc, matB_acc, matA, matB);
             SW_BARRIER();
+            //         static const char vec_a[]
+            //                 = "vec_a after load %d %d %d %d %d %d %d %d %d %d %d %d %d "
+            //                   "%d %d %d\n";
+            //     #pragma unroll
+            //         for (int i = 0; i < 256; i += 16) {
+            //             sycl::ext::oneapi::experimental::printf(vec_a,
+            //                     (int)matA_acc.reg[i + 0], (int)matA_acc.reg[i + 1],
+            //                     (int)matA_acc.reg[i + 2], (int)matA_acc.reg[i + 3],
+            //                     (int)matA_acc.reg[i + 4], (int)matA_acc.reg[i + 5],
+            //                     (int)matA_acc.reg[i + 6], (int)matA_acc.reg[i + 7],
+            //                     (int)matA_acc.reg[i + 8], (int)matA_acc.reg[i + 9],
+            //                     (int)matA_acc.reg[i + 10],
+            //                     (int)matA_acc.reg[i + 11],
+            //                     (int)matA_acc.reg[i + 12],
+            //                     (int)matA_acc.reg[i + 13],
+            //                     (int)matA_acc.reg[i + 14],
+            //                     (int)matA_acc.reg[i + 15]);
+            //         }
             tile_mma::mma(matAcc, matAcc, matB_acc, matA_acc);
             SW_BARRIER();
             if constexpr (enable_periodic_sync) {
@@ -354,6 +374,22 @@ public:
     }
 
 private:
+    inline void reorder_matA(matA_t &matA) {
+        constexpr uint32_t num_block_x = tile_size_x_a / block_size_x_a;
+        constexpr uint32_t num_block_y = tile_size_y_a / block_size_y_a;
+        for (int i = 0; i < num_block_y * num_block_x; i++) {
+            auto dst_blk = matA.reg.xetla_select<matA_t::block_elems, 1>(
+                    i * matA_t::block_elems);
+            xetla_vector<float, matA_t::block_elems> trans_blk;
+            for (int j = 0; j < block_size_y_a; j++) {
+                trans_blk.xetla_select<block_size_y_a, block_size_x_a>(j)
+                        = dst_blk.xetla_select<block_size_y_a, 1>(
+                                j * block_size_x_a);
+            }
+            dst_blk = trans_blk;
+        }
+        //  sycl::ext::oneapi::experimental::printf("block x:%d y: %d\n",num_block_x,num_block_y);
+    }
     /// @brief Updates tile base descriptor based on the tid.
     __XETLA_API static void update_sg_tile_tdesc(
             arguments_t &args, int32_t sg_idx, int32_t sg_idy) {
