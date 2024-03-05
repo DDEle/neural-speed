@@ -16,7 +16,7 @@
 
 #include "xetla.hpp"
 #include <utils/utils.hpp>
-#define UT_DEBUG 1
+// #define UT_DEBUG 1
 using namespace gpu::xetla;
 //The number of times the kernel is executed
 constexpr int ITER = 1;
@@ -25,8 +25,8 @@ class test1 {
 public:
     //Extract the parameters required by different test cases
     static constexpr size_t mat_m = 16;
-    static constexpr size_t mat_n = 32;
-    static constexpr size_t mat_k = 32;
+    static constexpr size_t mat_n = 128;
+    static constexpr size_t mat_k = 128;
     static constexpr size_t wg_m = 16;
     static constexpr size_t wg_n = 16;
     static constexpr size_t sg_m = 16;
@@ -36,12 +36,77 @@ public:
     static constexpr size_t num_buffer = 64;
     static constexpr size_t local_kslicing = 1;
     static constexpr size_t global_kslicing = 1;
-    static constexpr mem_layout layout_a = mem_layout::row_major;
+    static constexpr mem_layout layout_a = mem_layout::col_major;
     static constexpr mem_layout layout_b = mem_layout::row_major;
     using data_type_a = fp16;
     using data_type_b = int4x2;
     using data_type_c = fp16;
 };
+class t1 {
+public:
+  //Extract the parameters required by different test cases
+  static constexpr size_t mat_m = 1024;
+  static constexpr size_t mat_n = 4096;
+  static constexpr size_t mat_k = 4096;
+  static constexpr size_t wg_m = 32;
+  static constexpr size_t wg_n = 32;
+  static constexpr size_t sg_m = 8;
+  static constexpr size_t sg_n = 16;
+  static constexpr size_t sg_k = 16;
+  static constexpr size_t dequant_s = 32;
+  static constexpr size_t num_buffer = 64;
+  static constexpr size_t local_kslicing = 8;
+  static constexpr size_t global_kslicing = 1;
+  static constexpr mem_layout layout_a = mem_layout::row_major;
+  static constexpr mem_layout layout_b = mem_layout::row_major;
+  using data_type_a = fp16;
+  using data_type_b = int4x2;
+  using data_type_c = fp16;
+};
+
+class t2 {
+public:
+  //Extract the parameters required by different test cases
+  static constexpr size_t mat_m = 1024;
+  static constexpr size_t mat_n = 4096;
+  static constexpr size_t mat_k = 4096;
+  static constexpr size_t wg_m = 8;
+  static constexpr size_t wg_n = 32;
+  static constexpr size_t sg_m = 8;
+  static constexpr size_t sg_n = 16;
+  static constexpr size_t sg_k = 16;
+  static constexpr size_t dequant_s = 32;
+  static constexpr size_t num_buffer = 64;
+  static constexpr size_t local_kslicing = 8;
+  static constexpr size_t global_kslicing = 1;
+  static constexpr mem_layout layout_a = mem_layout::row_major;
+  static constexpr mem_layout layout_b = mem_layout::row_major;
+  using data_type_a = fp16;
+  using data_type_b = int4x2;
+  using data_type_c = fp16;
+};
+class t3 {
+public:
+  //Extract the parameters required by different test cases
+  static constexpr size_t mat_m = 1024;
+  static constexpr size_t mat_n = 4096;
+  static constexpr size_t mat_k = 4096;
+  static constexpr size_t wg_m = 16;
+  static constexpr size_t wg_n = 32;
+  static constexpr size_t sg_m = 8;
+  static constexpr size_t sg_n = 16;
+  static constexpr size_t sg_k = 16;
+  static constexpr size_t dequant_s = 32;
+  static constexpr size_t num_buffer = 64;
+  static constexpr size_t local_kslicing = 8;
+  static constexpr size_t global_kslicing = 1;
+  static constexpr mem_layout layout_a = mem_layout::row_major;
+  static constexpr mem_layout layout_b = mem_layout::row_major;
+  using data_type_a = fp16;
+  using data_type_b = int4x2;
+  using data_type_c = fp16;
+};
+
 class test2 {
 public:
     //Extract the parameters required by different test cases
@@ -406,8 +471,6 @@ void dequantize_gemm_run(int iter) {
     //Define and initialize the data required for the calculation
     auto *A_h = static_cast<data_type_a *>(
             malloc_host(size_a * sizeof(data_type_a), context));
-    auto *A_hh = static_cast<data_type_a *>(
-            malloc_host(size_a * sizeof(data_type_a), context));
     auto *B_h = static_cast<data_type_b *>(
             malloc_host(size_b * sizeof(data_type_b), context));
     auto *C_h = static_cast<data_type_c *>(
@@ -452,29 +515,20 @@ void dequantize_gemm_run(int iter) {
         A_h[i] = random_float();
 #ifdef UT_DEBUG
         A_h[i] = 1.f;
-        A_h[i] = i % 16 + i / 16 * 100;
 #endif
     }
-
-        for (size_t i = 0; i < matrix_k; i++) {
-            for (size_t j = 0; j < matrix_m; j++) {
-                // A_hh[i * matrix_m + j] = A_h[i * matrix_m + j];
-//
-                A_hh[i * matrix_m + j] = A_h[j * matrix_k + i];
-            }
-        }
 
     for (unsigned i = 0; i < size_b; ++i) {
         B_h[i] = uint8_t(random_uint8());
 #ifdef UT_DEBUG
-        B_h[i] = 153;
+        B_h[i] = i % 128;
 #endif
     }
 
     for (unsigned i = 0; i < size_scale; ++i) {
         scale_h[i] = random_float();
 #ifdef UT_DEBUG
-        scale_h[i] = 1.f;
+        scale_h[i] = i / size_scale_n + 1;
 #endif
     }
 
@@ -501,8 +555,7 @@ void dequantize_gemm_run(int iter) {
 #endif
     }
 
-    queue.memcpy((void *)A_d, (void *)A_hh, size_a * sizeof(data_type_a))
-            .wait();
+    queue.memcpy((void *)A_d, (void *)A_h, size_a * sizeof(data_type_a)).wait();
     queue.memcpy((void *)B_d, (void *)B_h, size_b * sizeof(data_type_b)).wait();
     queue.memcpy((void *)C_d, (void *)C_h, size_c * sizeof(data_type_c)).wait();
     queue.memcpy((void *)Acc_d, (void *)Acc_h, size_acc * sizeof(data_type_acc))
@@ -565,7 +618,7 @@ void dequantize_gemm_run(int iter) {
     }
 
     //performance
-    prof.print_profiling_result(profiling_selector::GPU);
+    prof.print_profiling_result(profiling_selector::CPU);
 
     std::vector<fp16> dequantize_b(matrix_k * matrix_n, 0);
     for (uint32_t i = 0; i < matrix_k / dequant_s; i++) {
@@ -591,7 +644,6 @@ void dequantize_gemm_run(int iter) {
                     matrix_m, matrix_k, matrix_n, layout_a, layout_b));
 
     free(A_h, context);
-    free(A_hh, context);
     free(B_h, context);
     free(C_h, context);
     free(scale_h, context);
