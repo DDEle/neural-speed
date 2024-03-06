@@ -417,7 +417,7 @@ public:
                     matA, matA_payload);
             if constexpr (compute_policy::mma_engine == mma_engine::fpu
                     && !is_col_major_a)
-                reorder_matA(matA);
+                tile_transpose(matA);
 
             subgroup::tile_load<cache_hint::cached, cache_hint::cached>(
                     matB, matB_payload);
@@ -494,22 +494,6 @@ public:
     }
 
 private:
-    inline void reorder_matA(matA_t &matA) {
-        static_assert(block_size_x_a == block_size_y_b);
-        constexpr uint32_t num_block_x = tile_size_x_a / block_size_x_a;
-        constexpr uint32_t num_block_y = tile_size_y_a / block_size_y_a;
-        for (uint32_t i = 0; i < num_block_y * num_block_x; i++) {
-            auto dst_blk = matA.reg.xetla_select<matA_t::block_elems, 1>(
-                    i * matA_t::block_elems);
-            xetla_vector<float, matA_t::block_elems> trans_blk;
-            for (uint32_t j = 0; j < block_size_y_a; j++) {
-                trans_blk.xetla_select<block_size_y_a, block_size_x_a>(j)
-                        = dst_blk.xetla_select<block_size_y_a, 1>(
-                                j * block_size_x_a);
-            }
-            dst_blk = trans_blk;
-        }
-    }
     inline void dequantize(matB_acc_t &matB_acc, matB_t &matB, scale_t &scale,
             zero_pt_t &zero_pt) {
         //no tail, because this is matB
