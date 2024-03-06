@@ -479,7 +479,7 @@ tile_load(tile_t &tile, payload_t &payload) {
             }
         }
     }
-        XETLA_PRINT<payload_t::mem_transform>();
+    XETLA_PRINT<payload_t::mem_transform>();
     if constexpr (payload_t::mem_transform) {
         SW_BARRIER();
         vnni_convert(tile);

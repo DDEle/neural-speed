@@ -827,7 +827,6 @@ private:
 public:
     static constexpr bool mem_transpose
             = memory_layout == mem_layout::col_major;
-            using a = decltype( XETLA_PRINT<mem_transpose>());
     static constexpr reg_layout register_layout = tile_desc::register_layout;
     static constexpr bool reg_transpose
             = register_layout == reg_layout::transpose_tiled;
@@ -843,12 +842,12 @@ public:
     static constexpr uint32_t block_bytes
             = block_size_x * block_size_y * sizeof(dtype);
 
-//     using mem_dtype = uint32_t;
-        using mem_dtype = typename std::conditional<
-                (block_per_row_bytes % sizeof(uint64_t) == 0), uint64_t,
-                typename std::conditional<(block_per_row_bytes % sizeof(uint32_t)
-                                                  == 0),
-                        uint32_t, dtype>::type>::type;
+    //     using mem_dtype = uint32_t;
+    using mem_dtype = typename std::conditional<
+            (block_per_row_bytes % sizeof(uint64_t) == 0), uint64_t,
+            typename std::conditional<(block_per_row_bytes % sizeof(uint32_t)
+                                              == 0),
+                    uint32_t, dtype>::type>::type;
     static constexpr uint32_t scale_factor = sizeof(mem_dtype) / sizeof(dtype);
     // for pvc, we can use simd16 or simd32
     static constexpr uint32_t min_store_bytes = 16 * sizeof(dtype);
