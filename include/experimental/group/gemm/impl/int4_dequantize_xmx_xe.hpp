@@ -31,10 +31,11 @@ namespace gpu::xetla::group {
 template <typename compute_attr_, typename perf_tuning_knob_,
         typename tile_shape_, typename mem_desc_a_t_, typename mem_desc_b_t_,
         typename dtype_scale_, typename dtype_zero_pt_, int dequant_s_,
-        quant_mode quant_type_, typename pre_processing_t_, gpu_arch arch_tag_>
+        quant_mode quant_type_, mma_engine mma_engine_,
+        typename pre_processing_t_, gpu_arch arch_tag_>
 class gemm_t<compute_policy_int4_dequantize_xmx<compute_attr_,
                      perf_tuning_knob_, dtype_scale_, dtype_zero_pt_,
-                     quant_type_, dequant_s_, arch_tag_>,
+                     quant_type_, dequant_s_, mma_engine_, arch_tag_>,
         tile_shape_, // tile shape of workgroup-level gemm
         mem_desc_a_t_, // memory attribute of matA
         mem_desc_b_t_, // memory attribute of matB
@@ -47,7 +48,7 @@ public:
     using pre_processing_t = pre_processing_t_;
     using compute_policy = compute_policy_int4_dequantize_xmx<compute_attr_,
             perf_tuning_knob_, dtype_scale_, dtype_zero_pt_, quant_type_,
-            dequant_s_, arch_tag_>;
+            dequant_s_, mma_engine_, arch_tag_>;
     static constexpr uint32_t k_stride = compute_policy::k_stride;
 
     static constexpr uint32_t sg_tile_m = tile_shape::sg_tile_size_y;
@@ -124,12 +125,14 @@ private:
             = compute_policy::block_bytes_y_b / sizeof(dtype_mma_b);
 
     /******** set tile  **********/
-    //     static constexpr bool is_vnni_tiled_a
-    //             = (sizeof(dtype_a) < sizeof(uint32_t)) && is_col_major_a;
-    //     static constexpr reg_layout reg_layout_a
-    //             = is_vnni_tiled_a ? reg_layout::vnni_tiled : reg_layout::tiled;
-    static constexpr bool is_vnni_tiled_a = false;
-    static constexpr reg_layout reg_layout_a = reg_layout::transpose_tiled;
+    static constexpr bool is_vnni_tiled_a
+            = compute_policy::mma_engine == mma_engine::xmx
+            ? ((sizeof(dtype_a) < sizeof(uint32_t)) && is_col_major_a)
+            : false;
+    static constexpr reg_layout reg_layout_a
+            = compute_policy::mma_engine == mma_engine::xmx
+            ? (is_vnni_tiled_a ? reg_layout::vnni_tiled : reg_layout::tiled)
+            : reg_layout::transpose_tiled;
 
     using matA_tile_desc_t = subgroup::tile_desc_t<tile_size_x_a, tile_size_y_a,
             block_size_x_a, block_size_y_a, reg_layout_a>;
@@ -212,7 +215,7 @@ private:
                     zero_pt_tile_desc_t, 1, arch_tag>;
 
     using tile_mma = subgroup::tile_mma_t<matAcc_t, matAcc_t, matB_acc_t,
-            matA_acc_t, mma_engine::fpu, arch_tag>;
+            matA_acc_t, compute_policy::mma_engine, arch_tag>;
 
     static constexpr bool enable_periodic_sync = (sync_freq != 0);
     static constexpr uint32_t barrier_count_x = wg_size_y > 1 ? wg_size_x : 0;
@@ -412,14 +415,9 @@ public:
             }
             subgroup::tile_load<cache_hint::cached, cache_hint::cached>(
                     matA, matA_payload);
-            if constexpr (!is_col_major_a) reorder_matA(matA);
-            //     sycl::ext::oneapi::experimental::printf("after load :  \n");
-            //     for (int z = 0; z < 16 * 16; z++) {
-            //         if (z % 16 == 0) sycl::ext::oneapi::experimental::printf("\n");
-            //         sycl::ext::oneapi::experimental::printf(
-            //                 "%f ", (float)(sycl::half)matA.reg[z]);
-            //     }
-            //     sycl::ext::oneapi::experimental::printf("\n");
+            if constexpr (compute_policy::mma_engine == mma_engine::fpu
+                    && !is_col_major_a)
+                reorder_matA(matA);
 
             subgroup::tile_load<cache_hint::cached, cache_hint::cached>(
                     matB, matB_payload);
@@ -481,23 +479,6 @@ public:
             subgroup::elemwise_cvt(matA_acc, matA);
             dequantize(matB_acc, matB, scale, zero_pt);
             SW_BARRIER();
-
-            //     sycl::ext::oneapi::experimental::printf("matB:  \n");
-            //     for (int z = 0; z < 16 * 16; z++) {
-            //         if (z % 16 == 0) sycl::ext::oneapi::experimental::printf("\n");
-            //         sycl::ext::oneapi::experimental::printf(
-            //                 "%d ", (int)(sycl::half)matB_acc.reg[z]);
-            //     }
-            //     sycl::ext::oneapi::experimental::printf("\n");
-
-            //     sycl::ext::oneapi::experimental::printf("scale:  \n");
-            //     for (int z = 0; z < 16; z++) {
-            //         if (z % 16 == 0) sycl::ext::oneapi::experimental::printf("\n");
-            //         sycl::ext::oneapi::experimental::printf(
-            //                 "%d ", (int)(sycl::half)scale.reg[z]);
-            //     }
-            //     sycl::ext::oneapi::experimental::printf("\n");
-
             tile_mma::mma(matAcc, matAcc, matB_acc, matA_acc);
             SW_BARRIER();
             if constexpr (enable_periodic_sync) {
@@ -540,7 +521,6 @@ private:
         for (uint32_t i = 0; i < num_block_y; ++i) {
 #pragma unroll
             for (uint32_t j = 0; j < num_block_x; ++j) {
-                //     sycl::ext::oneapi::experimental::printf("dequantloop i: %d j: %d \n",i,j);
                 int block_id = (i * num_block_x + j);
                 auto matB_blk = matB.reg.xetla_select<matB_t::block_elems, 1>(
                                                 block_id * matB_t::block_elems)
