@@ -135,7 +135,5 @@ struct compute_policy_default_fpu<compute_attr_, perf_tuning_knob_, arch_tag_,
             = block_bytes_x_b / sizeof(dtype_mma_b);
     static constexpr uint32_t block_size_y_b = block_size_x_a;
 };
-
 /// @} xetla_gemm
-
 } // namespace gpu::xetla::group
