@@ -19,22 +19,22 @@
 // #define UT_DEBUG 1
 using namespace gpu::xetla;
 //The number of times the kernel is executed
-constexpr int ITER = 1000;
+constexpr int ITER = 1;
 
 class test1 {
 public:
     //Extract the parameters required by different test cases
-    static constexpr size_t mat_m = 1;// m = 1 / 16
+    static constexpr size_t mat_m = 32;
     static constexpr size_t mat_n = 4096 * 3;
     static constexpr size_t mat_k = 4096 * 3;
-    static constexpr size_t wg_m = 8;
-    static constexpr size_t wg_n = 32;
-    static constexpr size_t sg_m = 8;
-    static constexpr size_t sg_n = 32;
-    static constexpr size_t sg_k = 32;
+    static constexpr size_t wg_m = 16;
+    static constexpr size_t wg_n = 16;
+    static constexpr size_t sg_m = 16;
+    static constexpr size_t sg_n = 16;
+    static constexpr size_t sg_k = 16;
     static constexpr size_t dequant_s = 16;
-    static constexpr size_t num_buffer = 64;
-    static constexpr size_t local_kslicing = 8;
+
+    static constexpr size_t local_kslicing = 1;
     static constexpr size_t global_kslicing = 1;
     static constexpr mem_layout layout_a = mem_layout::col_major;
     static constexpr mem_layout layout_b = mem_layout::row_major;
@@ -44,67 +44,67 @@ public:
 };
 class t1 {
 public:
-  //Extract the parameters required by different test cases
-  static constexpr size_t mat_m = 1024;
-  static constexpr size_t mat_n = 4096;
-  static constexpr size_t mat_k = 4096;
-  static constexpr size_t wg_m = 32;
-  static constexpr size_t wg_n = 32;
-  static constexpr size_t sg_m = 8;
-  static constexpr size_t sg_n = 16;
-  static constexpr size_t sg_k = 16;
-  static constexpr size_t dequant_s = 32;
-  static constexpr size_t num_buffer = 64;
-  static constexpr size_t local_kslicing = 8;
-  static constexpr size_t global_kslicing = 1;
-  static constexpr mem_layout layout_a = mem_layout::row_major;
-  static constexpr mem_layout layout_b = mem_layout::row_major;
-  using data_type_a = fp16;
-  using data_type_b = int4x2;
-  using data_type_c = fp16;
+    //Extract the parameters required by different test cases
+    static constexpr size_t mat_m = 1024;
+    static constexpr size_t mat_n = 4096;
+    static constexpr size_t mat_k = 4096;
+    static constexpr size_t wg_m = 32;
+    static constexpr size_t wg_n = 32;
+    static constexpr size_t sg_m = 8;
+    static constexpr size_t sg_n = 16;
+    static constexpr size_t sg_k = 16;
+    static constexpr size_t dequant_s = 32;
+
+    static constexpr size_t local_kslicing = 8;
+    static constexpr size_t global_kslicing = 1;
+    static constexpr mem_layout layout_a = mem_layout::row_major;
+    static constexpr mem_layout layout_b = mem_layout::row_major;
+    using data_type_a = fp16;
+    using data_type_b = int4x2;
+    using data_type_c = fp16;
 };
 
 class t2 {
 public:
-  //Extract the parameters required by different test cases
-  static constexpr size_t mat_m = 1024;
-  static constexpr size_t mat_n = 4096;
-  static constexpr size_t mat_k = 4096;
-  static constexpr size_t wg_m = 8;
-  static constexpr size_t wg_n = 32;
-  static constexpr size_t sg_m = 8;
-  static constexpr size_t sg_n = 16;
-  static constexpr size_t sg_k = 16;
-  static constexpr size_t dequant_s = 32;
-  static constexpr size_t num_buffer = 64;
-  static constexpr size_t local_kslicing = 8;
-  static constexpr size_t global_kslicing = 1;
-  static constexpr mem_layout layout_a = mem_layout::row_major;
-  static constexpr mem_layout layout_b = mem_layout::row_major;
-  using data_type_a = fp16;
-  using data_type_b = int4x2;
-  using data_type_c = fp16;
+    //Extract the parameters required by different test cases
+    static constexpr size_t mat_m = 1024;
+    static constexpr size_t mat_n = 4096;
+    static constexpr size_t mat_k = 4096;
+    static constexpr size_t wg_m = 8;
+    static constexpr size_t wg_n = 32;
+    static constexpr size_t sg_m = 8;
+    static constexpr size_t sg_n = 16;
+    static constexpr size_t sg_k = 16;
+    static constexpr size_t dequant_s = 32;
+
+    static constexpr size_t local_kslicing = 8;
+    static constexpr size_t global_kslicing = 1;
+    static constexpr mem_layout layout_a = mem_layout::row_major;
+    static constexpr mem_layout layout_b = mem_layout::row_major;
+    using data_type_a = fp16;
+    using data_type_b = int4x2;
+    using data_type_c = fp16;
 };
 class t3 {
 public:
-  //Extract the parameters required by different test cases
-  static constexpr size_t mat_m = 1024;
-  static constexpr size_t mat_n = 4096;
-  static constexpr size_t mat_k = 4096;
-  static constexpr size_t wg_m = 16;
-  static constexpr size_t wg_n = 32;
-  static constexpr size_t sg_m = 8;
-  static constexpr size_t sg_n = 16;
-  static constexpr size_t sg_k = 16;
-  static constexpr size_t dequant_s = 32;
-  static constexpr size_t num_buffer = 64;
-  static constexpr size_t local_kslicing = 8;
-  static constexpr size_t global_kslicing = 1;
-  static constexpr mem_layout layout_a = mem_layout::row_major;
-  static constexpr mem_layout layout_b = mem_layout::row_major;
-  using data_type_a = fp16;
-  using data_type_b = int4x2;
-  using data_type_c = fp16;
+    //Extract the parameters required by different test cases
+    static constexpr size_t mat_m = 1024;
+    static constexpr size_t mat_n = 4096;
+    static constexpr size_t mat_k = 4096;
+    static constexpr size_t wg_m = 16;
+    static constexpr size_t wg_n = 32;
+    static constexpr size_t sg_m = 8;
+    static constexpr size_t sg_n = 16;
+    static constexpr size_t sg_k = 16;
+    static constexpr size_t dequant_s = 32;
+
+    static constexpr size_t local_kslicing = 8;
+    static constexpr size_t global_kslicing = 1;
+    static constexpr mem_layout layout_a = mem_layout::row_major;
+    static constexpr mem_layout layout_b = mem_layout::row_major;
+    using data_type_a = fp16;
+    using data_type_b = int4x2;
+    using data_type_c = fp16;
 };
 
 class test2 {
@@ -119,7 +119,7 @@ public:
     static constexpr size_t sg_n = 16;
     static constexpr size_t sg_k = 16;
     static constexpr size_t dequant_s = 128;
-    static constexpr size_t num_buffer = 64;
+
     static constexpr size_t local_kslicing = 4;
     static constexpr size_t global_kslicing = 1;
     static constexpr mem_layout layout_a = mem_layout::row_major;
@@ -140,7 +140,7 @@ public:
     static constexpr size_t sg_n = 16;
     static constexpr size_t sg_k = 16;
     static constexpr size_t dequant_s = 64;
-    static constexpr size_t num_buffer = 64;
+
     static constexpr size_t local_kslicing = 8;
     static constexpr size_t global_kslicing = 1;
     static constexpr mem_layout layout_a = mem_layout::row_major;
@@ -161,7 +161,7 @@ public:
     static constexpr size_t sg_n = 16;
     static constexpr size_t sg_k = 16;
     static constexpr size_t dequant_s = 64;
-    static constexpr size_t num_buffer = 64;
+
     static constexpr size_t local_kslicing = 8;
     static constexpr size_t global_kslicing = 1;
     static constexpr mem_layout layout_a = mem_layout::row_major;
@@ -182,7 +182,7 @@ public:
     static constexpr size_t sg_n = 16;
     static constexpr size_t sg_k = 16;
     static constexpr size_t dequant_s = 64;
-    static constexpr size_t num_buffer = 64;
+
     static constexpr size_t local_kslicing = 8;
     static constexpr size_t global_kslicing = 1;
     static constexpr mem_layout layout_a = mem_layout::row_major;
@@ -203,7 +203,7 @@ public:
     static constexpr size_t sg_n = 16;
     static constexpr size_t sg_k = 16;
     static constexpr size_t dequant_s = 32;
-    static constexpr size_t num_buffer = 64;
+
     static constexpr size_t local_kslicing = 4;
     static constexpr size_t global_kslicing = 1;
     static constexpr mem_layout layout_a = mem_layout::row_major;
@@ -224,7 +224,7 @@ public:
     static constexpr size_t sg_n = 16;
     static constexpr size_t sg_k = 16;
     static constexpr size_t dequant_s = 64;
-    static constexpr size_t num_buffer = 64;
+
     static constexpr size_t local_kslicing = 8;
     static constexpr size_t global_kslicing = 1;
     static constexpr mem_layout layout_a = mem_layout::row_major;
@@ -245,7 +245,7 @@ public:
     static constexpr size_t sg_n = 16;
     static constexpr size_t sg_k = 16;
     static constexpr size_t dequant_s = 64;
-    static constexpr size_t num_buffer = 64;
+
     static constexpr size_t local_kslicing = 8;
     static constexpr size_t global_kslicing = 1;
     static constexpr mem_layout layout_a = mem_layout::row_major;
@@ -266,7 +266,7 @@ public:
     static constexpr size_t sg_n = 16;
     static constexpr size_t sg_k = 16;
     static constexpr size_t dequant_s = 64;
-    static constexpr size_t num_buffer = 64;
+
     static constexpr size_t local_kslicing = 8;
     static constexpr size_t global_kslicing = 1;
     static constexpr mem_layout layout_a = mem_layout::row_major;
@@ -287,7 +287,7 @@ public:
     static constexpr size_t sg_n = 16;
     static constexpr size_t sg_k = 16;
     static constexpr size_t dequant_s = 64;
-    static constexpr size_t num_buffer = 64;
+
     static constexpr size_t local_kslicing = 8;
     static constexpr size_t global_kslicing = 1;
     static constexpr mem_layout layout_a = mem_layout::row_major;
@@ -308,7 +308,7 @@ public:
     static constexpr size_t sg_n = 16;
     static constexpr size_t sg_k = 16;
     static constexpr size_t dequant_s = 64;
-    static constexpr size_t num_buffer = 64;
+
     static constexpr size_t local_kslicing = 4;
     static constexpr size_t global_kslicing = 1;
     static constexpr mem_layout layout_a = mem_layout::row_major;
@@ -329,7 +329,7 @@ public:
     static constexpr size_t sg_n = 16;
     static constexpr size_t sg_k = 16;
     static constexpr size_t dequant_s = 64;
-    static constexpr size_t num_buffer = 64;
+
     static constexpr size_t local_kslicing = 8;
     static constexpr size_t global_kslicing = 1;
     static constexpr mem_layout layout_a = mem_layout::row_major;
@@ -387,8 +387,8 @@ void dequantize_gemm_run(int iter) {
     using data_type_zero_pt = int4x2;
     using data_type_scale = fp16;
     using data_type_acc_in = fp16;
-    using data_type_acc = fp16;
-//     using data_type_acc = float;
+    using data_type_acc = float;
+    //     using data_type_acc = float;
     using data_type_bias = fp16;
 
     constexpr mem_layout layout_a = Test::layout_a;
@@ -522,14 +522,14 @@ void dequantize_gemm_run(int iter) {
     for (unsigned i = 0; i < size_b; ++i) {
         B_h[i] = uint8_t(random_uint8());
 #ifdef UT_DEBUG
-        B_h[i] = i % 128;
+        B_h[i] = 152;
 #endif
     }
 
     for (unsigned i = 0; i < size_scale; ++i) {
         scale_h[i] = random_float();
 #ifdef UT_DEBUG
-        scale_h[i] = i / size_scale_n + 1;
+        scale_h[i] = 1.f;
 #endif
     }
 
@@ -594,7 +594,7 @@ void dequantize_gemm_run(int iter) {
 
     size_t ops = 2 * matrix_m * matrix_n * matrix_k + matrix_m * matrix_n;
     profiling_helper prof("dequantize_gemm", ops, "gflops");
-    int constexpr warm = 100;
+    int constexpr warm = 0;
     try {
         for (int i = 0; i < iter + warm; i++) {
             if (i >= warm) prof.cpu_start();
