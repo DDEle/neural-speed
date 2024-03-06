@@ -418,7 +418,7 @@ template <cache_hint L1 = cache_hint::cached,
         cache_hint L3 = cache_hint::cached, typename tile_t, typename payload_t>
 __XETLA_API typename std::enable_if_t<
         detail::check_load_type<tile_t, payload_t>::is_global_block_2d
-        && payload_t::arch_tag == gpu_arch::Dg2>
+        && payload_t::arch_tag <= gpu_arch::Dg2>
 tile_load(tile_t &tile, payload_t &payload) {
     //     static const char vec_a[]
     //             = "load_: %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n";

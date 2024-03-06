@@ -583,14 +583,14 @@ public:
     }
 };
 
-template <typename gemm_t_, typename epilogue_t_>
-class gemm_universal_t<dispatch_policy_stream_k<gpu_arch::Dg2>, gemm_t_,
-        epilogue_t_> {
+template <typename gemm_t_, typename epilogue_t_, gpu_arch arch_>
+class gemm_universal_t<dispatch_policy_stream_k<arch_>, gemm_t_, epilogue_t_,
+        std::enable_if_t<(arch_ <= gpu_arch::Dg2)>> {
     using gemm_t = gemm_t_;
     using epilogue_t = epilogue_t_;
     using gemm_args_t = typename gemm_t::arguments_t;
     using epilogue_args_t = typename epilogue_t::arguments_t;
-    using dispatch_stream_k = dispatch_policy_stream_k<gpu_arch::Dg2>;
+    using dispatch_stream_k = dispatch_policy_stream_k<arch_>;
 
     // Scratchspace to accumulate partials
     using mem_desc_d_t

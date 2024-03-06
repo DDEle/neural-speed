@@ -178,7 +178,7 @@ struct gelu_fwd_w_op_t {};
 /// Xe architecture.
 template <typename dtype_out_, gpu_arch arch_tag>
 struct gelu_fwd_w_op_t<dtype_out_, arch_tag,
-        std::enable_if_t<(arch_tag == gpu_arch::Xe)>> {
+        std::enable_if_t<(arch_tag <= gpu_arch::Xe)>> {
     using dtype_out = dtype_out_;
     using mem_desc_w_t
             = mem_desc_t<dtype_out, mem_layout::row_major, mem_space::global>;
@@ -298,7 +298,7 @@ struct gelu_bwd_op_t {};
 /// architecture.
 template <typename dtype_in_, gpu_arch arch_tag>
 struct gelu_bwd_op_t<dtype_in_, arch_tag,
-        std::enable_if_t<(arch_tag == gpu_arch::Xe)>> {
+        std::enable_if_t<(arch_tag <= gpu_arch::Xe)>> {
     using dtype_in = dtype_in_;
     using mem_desc_x_t
             = mem_desc_t<dtype_in, mem_layout::row_major, mem_space::global>;
@@ -493,7 +493,7 @@ struct scale_v_offset_v_op_t {};
 /// @brief Is the scale_v_offset_v op functor, specialized for Xe architecture.
 template <typename scale_dtype_, typename offset_dtype_, gpu_arch arch_tag>
 struct scale_v_offset_v_op_t<scale_dtype_, offset_dtype_, arch_tag,
-        std::enable_if_t<(arch_tag == gpu_arch::Xe)>> {
+        std::enable_if_t<(arch_tag <= gpu_arch::Xe)>> {
     using scale_dtype = scale_dtype_;
     using offset_dtype = offset_dtype_;
 
@@ -621,7 +621,7 @@ struct scale_v_op_t {};
 /// @brief Is the scale_v op functor, specialized for Xe architecture.
 template <typename scale_dtype_, gpu_arch arch_tag>
 struct scale_v_op_t<scale_dtype_, arch_tag,
-        std::enable_if_t<(arch_tag == gpu_arch::Xe)>> {
+        std::enable_if_t<(arch_tag <= gpu_arch::Xe)>> {
     using scale_dtype = scale_dtype_;
 
     using scale_mem_desc_t
@@ -935,7 +935,7 @@ struct dropout_op_t {};
 /// @brief Is the dropout op functor, specialized for Xe architecture.
 template <typename dtype_mask_, gpu_arch arch_tag>
 struct dropout_op_t<dtype_mask_, arch_tag,
-        std::enable_if_t<(arch_tag == gpu_arch::Xe)>> {
+        std::enable_if_t<(arch_tag <= gpu_arch::Xe)>> {
     using dtype_mask = dtype_mask_;
     using mem_desc_mask_t
             = mem_desc_t<dtype_mask, mem_layout::row_major, mem_space::global>;
@@ -1013,7 +1013,7 @@ struct rng_dropout_op_t {};
 /// for Xe architecture.
 template <typename dtype_mask_, gpu_arch arch_tag>
 struct rng_dropout_op_t<dtype_mask_, arch_tag,
-        std::enable_if_t<(arch_tag == gpu_arch::Xe)>> {
+        std::enable_if_t<(arch_tag <= gpu_arch::Xe)>> {
     using dtype_mask = dtype_mask_;
     using mem_desc_mask_t
             = mem_desc_t<dtype_mask, mem_layout::row_major, mem_space::global>;
@@ -1117,7 +1117,7 @@ struct scalar_mul_op_t {};
 /// @brief Is the scalar_multiply op functor, specialized for Xe architecture.
 template <typename dtype_in_, gpu_arch arch_tag>
 struct scalar_mul_op_t<dtype_in_, arch_tag,
-        std::enable_if_t<(arch_tag == gpu_arch::Xe)>> {
+        std::enable_if_t<(arch_tag <= gpu_arch::Xe)>> {
     using dtype_in = dtype_in_;
     using mem_desc_in_t
             = mem_desc_t<dtype_in, mem_layout::row_major, mem_space::global>;

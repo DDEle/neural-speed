@@ -41,7 +41,7 @@ template <typename compute_attr_, typename perf_tuning_knob_,
         int dequant_s_, gpu_arch arch_tag_>
 struct compute_policy_int4_dequantize_xmx<compute_attr_, perf_tuning_knob_,
         dtype_scale_, dtype_zero_pt_, quant_type_, dequant_s_, arch_tag_,
-        std::enable_if_t<(arch_tag_ <= gpu_arch::Xe)>> {
+        std::enable_if_t<arch_has_xmx(arch_tag_)>> {
     using compute_attr = compute_attr_;
     using perf_tuning_knob = perf_tuning_knob_;
     static constexpr int k_stride = perf_tuning_knob::k_stride;
@@ -57,7 +57,8 @@ struct compute_policy_int4_dequantize_xmx<compute_attr_, perf_tuning_knob_,
 
     static constexpr bool is_int4_matB_policy = true;
 
-    static constexpr uint32_t block_size_x_b = 16;
+    static constexpr uint32_t block_size_x_b
+            = arch_tag == gpu_arch::Dg2 ? 8 : 16;
     static constexpr uint32_t block_bytes_y_b = 32;
     static_assert(block_bytes_x_a == block_bytes_y_b,
             "mat_a x need to match with mat_b y");

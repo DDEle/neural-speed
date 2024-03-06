@@ -86,6 +86,13 @@ struct mma_attr_t<gpu_arch::Dg2> {
     static constexpr uint32_t mma_k_in_bytes = 32;
 };
 
+template <>
+struct mma_attr_t<gpu_arch::Igpu> {
+    static constexpr uint32_t mma_m_in_elem = 0;
+    static constexpr uint32_t mma_n_in_elem = 0;
+    static constexpr uint32_t mma_k_in_bytes = 0;
+};
+
 template <grf_mode grf_num_mode, gpu_arch arch_tag>
 struct register_attr_t {};
 
@@ -131,6 +138,19 @@ struct arch_attr_t<gpu_arch::Dg2> {
     using register_attr = register_attr_t<grf_num_mode, gpu_arch::Dg2>;
 
     using mma_attr = mma_attr_t<gpu_arch::Dg2>;
+
+    static constexpr uint32_t max_wg_num = 64;
+};
+
+template <>
+struct arch_attr_t<gpu_arch::Igpu> {
+    template <msg_type message_type = msg_type::block_2d>
+    using load_store_attr = load_store_attr_t<message_type, gpu_arch::Dg2>;
+
+    template <grf_mode grf_num_mode = grf_mode::normal>
+    using register_attr = register_attr_t<grf_num_mode, gpu_arch::Dg2>;
+
+    using mma_attr = mma_attr_t<gpu_arch::Igpu>;
 
     static constexpr uint32_t max_wg_num = 64;
 };
