@@ -24,9 +24,9 @@ constexpr int ITER = 1;
 class test1 {
 public:
     //Extract the parameters required by different test cases
-    static constexpr size_t mat_m = 32;
-    static constexpr size_t mat_n = 4096 * 3;
-    static constexpr size_t mat_k = 4096 * 3;
+    static constexpr size_t mat_m = 16;
+    static constexpr size_t mat_n = 128;
+    static constexpr size_t mat_k = 128;
     static constexpr size_t wg_m = 16;
     static constexpr size_t wg_n = 16;
     static constexpr size_t sg_m = 16;
@@ -36,7 +36,7 @@ public:
 
     static constexpr size_t local_kslicing = 8;
     static constexpr size_t global_kslicing = 1;
-    static constexpr mem_layout layout_a = mem_layout::col_major;
+    static constexpr mem_layout layout_a = mem_layout::row_major;
     static constexpr mem_layout layout_b = mem_layout::row_major;
     using data_type_a = fp16;
     using data_type_b = int4x2;

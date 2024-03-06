@@ -827,7 +827,7 @@ private:
 public:
     static constexpr bool mem_transpose
             = memory_layout == mem_layout::col_major;
-
+            using a = decltype( XETLA_PRINT<mem_transpose>());
     static constexpr reg_layout register_layout = tile_desc::register_layout;
     static constexpr bool reg_transpose
             = register_layout == reg_layout::transpose_tiled;
