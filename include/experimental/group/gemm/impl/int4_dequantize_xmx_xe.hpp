@@ -153,9 +153,8 @@ private:
     using matB_prefetch_payload_t = subgroup::prefetch_payload_t<mem_desc_b_t,
             matB_tile_desc_t, wg_size_y, arch_tag>;
 
-    using matB_acc_tile_desc_t
-            = subgroup::tile_desc_t<tile_size_x_b, tile_size_y_b,
-                    block_size_x_b, block_size_y_b, reg_layout::vnni_tiled>;
+    using matB_acc_tile_desc_t = subgroup::tile_desc_t<tile_size_x_b,
+            tile_size_y_b, block_size_x_b, block_size_y_b, reg_layout::tiled>;
     using matB_acc_t = subgroup::tile_t<dtype_mma_b, matB_acc_tile_desc_t>;
 
 public:
@@ -214,6 +213,7 @@ private:
 
     using tile_mma = subgroup::tile_mma_t<matAcc_t, matAcc_t, matB_acc_t,
             matA_acc_t, mma_engine::fpu, arch_tag>;
+
     static constexpr bool enable_periodic_sync = (sync_freq != 0);
     static constexpr uint32_t barrier_count_x = wg_size_y > 1 ? wg_size_x : 0;
     static constexpr uint32_t barrier_count_y = wg_size_x > 1 ? wg_size_y : 0;
