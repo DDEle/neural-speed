@@ -34,7 +34,7 @@ public:
     static constexpr size_t sg_k = 16;
     static constexpr size_t dequant_s = 16;
 
-    static constexpr size_t local_kslicing = 1;
+    static constexpr size_t local_kslicing = 8;
     static constexpr size_t global_kslicing = 1;
     static constexpr mem_layout layout_a = mem_layout::col_major;
     static constexpr mem_layout layout_b = mem_layout::row_major;
@@ -447,7 +447,7 @@ void dequantize_gemm_run(int iter) {
             = xetla::group::compute_policy_int4_dequantize_xmx<compute_attr,
                     perf_tuning_knob, data_type_scale, data_type_zero_pt,
                     gpu::xetla::group::quant_mode::S4_FULLRANGE_NO_ZP,
-                    dequant_s, gpu_arch::Dg2>;
+                    dequant_s, mma_engine::fpu, gpu_arch::Dg2>;
 
     using gemm_t = xetla::group::gemm_t<compute_policy, tile_shape,
             mem_desc_a_t, mem_desc_b_t>;
