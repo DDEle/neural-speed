@@ -448,7 +448,7 @@ public:
                 scale_prefetch_addr_i += dequant_s;
             }
             SW_BARRIER();
-            matA_payload.template update_tdesc<update_dir_b>(
+            matA_payload.template update_tdesc<update_dir_a>(
                     matA_t::tile_size_x);
             matB_payload.template update_tdesc<update_dir_b>(
                     matB_t::tile_size_y);
@@ -556,7 +556,7 @@ private:
                 }
                 if constexpr (compute_policy::quant_type
                         == quant_mode::S4_FULLRANGE_NO_ZP) {
-                    xetla_vector<int8_t, block_size_x_b * block_size_y_b>
+                    xetla_vector<int8_t, block_size_x_b *block_size_y_b>
                             cvt_blk_i8
                             = (cvt_blk.xetla_format<int8_t>()) - int8_t(8);
                     cvt_blk_i32 = (cvt_blk_i8.xetla_format<int8_t>());

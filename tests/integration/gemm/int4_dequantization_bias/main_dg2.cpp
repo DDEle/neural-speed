@@ -36,7 +36,7 @@ public:
 
     static constexpr size_t local_kslicing = 8;
     static constexpr size_t global_kslicing = 1;
-    static constexpr mem_layout layout_a = mem_layout::col_major;
+    static constexpr mem_layout layout_a = mem_layout::row_major;
     static constexpr mem_layout layout_b = mem_layout::row_major;
     using data_type_a = fp16;
     using data_type_b = int4x2;
