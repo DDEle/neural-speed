@@ -15,7 +15,8 @@
 *******************************************************************************/
 
 #pragma once
-
+#include <iomanip>
+#include <stdexcept>
 #include "common.hpp"
 #include "profiling.hpp"
 #include "xetla.hpp"
@@ -231,15 +232,18 @@ void kernel_run(auto nd_range, auto validate_result) {
 }
 
 template <template <gpu_arch> class F>
-struct dispatch_arch {
-    static void exec() {
+class dispatch_arch {
+    using T_RET = std::invoke_result_t<decltype(F<gpu_arch::Xe>::exec)>;
+
+public:
+    template <typename... Args>
+    static T_RET exec(Args &&...args) {
         sycl::device device;
-        if (!device.has(aspect::ext_intel_device_id)) {
-            std::cout << "Can not get device ID\n";
-            return;
-        }
+        if (!device.has(aspect::ext_intel_device_id))
+            throw std::runtime_error("Can not get device ID");
         auto deviceID = device.get_info<ext::intel::info::device::device_id>();
-        std::cout << "deviceID: " << std::hex << deviceID << "\n";
+        std::cout << "deviceID: 0x" << std::hex //
+                  << std::right << std::setfill('0') << deviceID << "\n";
 #if defined(SYCL_EXT_ONEAPI_DEVICE_ARCHITECTURE) \
         && SYCL_EXT_ONEAPI_DEVICE_ARCHITECTURE
         // https://github.com/intel/llvm/blob/sycl/sycl/doc/extensions/experimental/sycl_ext_oneapi_device_architecture.asciidoc#feature-test-macro
@@ -247,33 +251,42 @@ struct dispatch_arch {
         auto deviceArch = device.get_info<ENS::info::device::architecture>();
         switch (deviceArch) {
             case ENS::architecture::intel_gpu_pvc:
-                F<gpu_arch::Xe>::exec();
+                return F<gpu_arch::Xe>::exec(std::forward<Args>(args)...);
                 return;
             case ENS::architecture::intel_gpu_dg2_g10:
             case ENS::architecture::intel_gpu_dg2_g11:
             case ENS::architecture::intel_gpu_dg2_g12:
-                F<gpu_arch::Dg2>::exec();
-                return;
+                return F<gpu_arch::Dg2>::exec(std::forward<Args>(args)...);
             default: break;
         }
 
 #endif
-        std::cout << "No maching architecture, checking device ID ...\n";
+        std::cout << "No matching architecture, checking device ID ...\n";
         switch (deviceID) {
-            // DG2 devices: https://gfxspecs.intel.com/Predator/Home/Index/44477
+            // DG2 devices
             case 0x56a0: // Intel® Arc ™ A770 Graphics
             case 0x56a1: // Intel® Arc ™ A750 Graphics
             case 0x56a2: // Intel® Arc ™ A580 Graphics
             case 0x5690: // Intel® Arc ™ A770M Graphics
             case 0x5691: // Intel® Arc ™ A730M Graphics
             case 0x5692: // Intel® Arc ™ A550M Graphics
-                F<gpu_arch::Dg2>::exec();
-                return;
-            // PVC devices: https://gfxspecs.intel.com/Predator/Home/Index/44484
+                return F<gpu_arch::Dg2>::exec(std::forward<Args>(args)...);
+            // PVC devices
             case 0x0bda: //
-                F<gpu_arch::Xe>::exec();
-                return;
-            default: std::cout << "Unknown device ID \n"; return;
+                return F<gpu_arch::Xe>::exec(std::forward<Args>(args)...);
+            default: std::cout << "Unknown device ID \n"; break;
+        }
+
+        if (device.has(aspect::ext_intel_gpu_eu_simd_width))
+            throw std::runtime_error("Can not get eu_simd_width");
+        auto eu_simd_width = device.get_info<
+                ext::intel::info::device::gpu_eu_simd_width>();
+        if (eu_simd_width == 8) {
+            return F<gpu_arch::Dg2>::exec(std::forward<Args>(args)...);
+        } else if (eu_simd_width == 16) {
+            return F<gpu_arch::Xe>::exec(std::forward<Args>(args)...);
+        } else {
+            throw std::runtime_error("Can not get device ID");
         }
     }
 };
