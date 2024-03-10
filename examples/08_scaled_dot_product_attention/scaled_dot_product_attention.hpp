@@ -27,6 +27,9 @@ using namespace cl::sycl;
 #define sequence_len 512
 #define head_size 64
 
+template <gpu_arch arch_tag>
+void sdp_fwd_run(uint32_t iter, uint32_t warmup = 10);
+
 template <typename dtype_in, typename dtype_out, typename data_type_acc = float>
 int sdp_fwd_result_validate(dtype_in *q_device, dtype_in *k_device,
         dtype_in *v_device, dtype_in *mask_device, dtype_out *c_device,
@@ -135,8 +138,13 @@ int sdp_fwd_result_validate(dtype_in *q_device, dtype_in *k_device,
     return result ? 0 : 1;
 }
 
+template <gpu_arch arch_tag_>
+class kern_name {
+    static constexpr auto arch_tag = arch_tag_;
+};
+
 template <gpu_arch arch_tag>
-void sdp_fwd_run(uint32_t iter, uint32_t warmup = 10) {
+void sdp_fwd_run(uint32_t iter, uint32_t warmup) {
     // Tips, the example demonstrates programming kernel with XeTLA, it works as
     // expected with current configurations. Please make sure you fully understand
     // these configurations before you do any modifications, incomplete changes
@@ -253,7 +261,7 @@ void sdp_fwd_run(uint32_t iter, uint32_t warmup = 10) {
         for (uint32_t i = 0; i < iter + warmup; i++) {
             if (i >= warmup) { prof.cpu_start(); }
             auto gpu_event = queue.submit([&](handler &cgh) {
-                cgh.parallel_for(nd_range, [=](nd_item<3> item) KERNEL_MAIN {
+                auto gpu_kernel = [=](nd_item<3> item) KERNEL_FUNC {
                     using namespace gpu::xetla;
                     using namespace gpu::xetla::group;
                     using namespace gpu::xetla::kernel;
@@ -486,6 +494,36 @@ void sdp_fwd_run(uint32_t iter, uint32_t warmup = 10) {
                     matC_payload_t matC_payload(mem_desc_c);
                     subgroup::tile_store<cache_hint::write_back,
                             cache_hint::write_back>(matC, matC_payload);
+                };
+
+                cgh.parallel_for<kern_name<
+                        arch_tag>>(nd_range, [=](nd_item<3> item) KERNEL_MAIN {
+                    namespace syclex = sycl::ext::oneapi::experimental;
+                    if constexpr (arch_tag == gpu_arch::Dg2) {
+                        syclex::if_architecture_is<
+                                syclex::architecture::intel_gpu_acm_g10>([&] {
+                            gpu_kernel(item);
+                        }).otherwise([&item]() {
+                            if (item.get_global_linear_id()
+                                            + item.get_group_linear_id()
+                                    == 0)
+                                sycl::ext::oneapi::experimental::printf(
+                                        "Unsupported GPU arch!\n");
+                        });
+                    }
+                    if constexpr (arch_tag == gpu_arch::Xe) {
+                        syclex::if_architecture_is<
+                                syclex::architecture::intel_gpu_pvc>([&] {
+                            gpu_kernel(item);
+                        }).otherwise([&item]() {
+                            if (item.get_global_linear_id()
+                                            + item.get_group_linear_id()
+                                    == 0) {
+                                sycl::ext::oneapi::experimental::printf(
+                                        "Unsupported GPU arch!\n");
+                            }
+                        });
+                    }
                 });
             });
             gpu_event.wait();
@@ -519,7 +557,7 @@ void sdp_fwd_run(uint32_t iter, uint32_t warmup = 10) {
 
 template <gpu_arch arch_tag>
 struct main_wrapper {
-    static constexpr auto exec = []() {
+    static void exec() {
         // This example implements scaled-dot-production with batch_size: 16,
         // num_heads: 16, sequence_length: 512, head_size: 64. It will be shown how to
         // remap the index space of each work-item used for gemm1, softmax and gemm2.
@@ -545,8 +583,3 @@ struct main_wrapper {
         sdp_fwd_run<arch_tag>(10);
     };
 };
-
-int main() {
-    dispatch_arch<main_wrapper>::exec();
-    return 0;
-}
