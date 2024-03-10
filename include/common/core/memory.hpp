@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -205,7 +205,8 @@ constexpr __ESIMD_NS::atomic_op get_atomic_op(gpu::xetla::atomic_op ao) {
 /// VISA instruction: lsc_load.ugm
 ///
 /// @tparam Ty is element type.
-/// @tparam NElts is the number of elements to prefetch per address (i.e. vector_size per SIMD channel).
+/// @tparam NElts is the number of elements to prefetch per address (i.e.
+/// vector_size per SIMD channel).
 /// @tparam DS is the data size.
 /// @tparam L1H is L1 cache hint.
 /// @tparam L2H is L2 cache hint.
@@ -234,7 +235,8 @@ __XETLA_API void xetla_prefetch_global(
 /// VISA instruction: lsc_load.ugm
 ///
 /// @tparam Ty is element type.
-/// @tparam NElts is the number of elements to prefetch per address (i.e. vector_size per SIMD channel).
+/// @tparam NElts is the number of elements to prefetch per address (i.e.
+/// vector_size per SIMD channel).
 /// @tparam DS is the data size.
 /// @tparam L1H is L1 cache hint.
 /// @tparam L2H is L2 cache hint.
@@ -262,7 +264,8 @@ __XETLA_API void xetla_prefetch_global(Ty *p, uint64_t offset = 0) {
 /// VISA instruction: lsc_load.ugm
 ///
 /// @tparam Ty is element type.
-/// @tparam NElts is the number of elements to load per address (i.e. vector_size per SIMD channel).
+/// @tparam NElts is the number of elements to load per address (i.e.
+/// vector_size per SIMD channel).
 /// @tparam DS is the data size.
 /// @tparam L1H is L1 cache hint.
 /// @tparam L2H is L2 cache hint.
@@ -299,7 +302,8 @@ __XETLA_API xetla_vector<Ty, N * NElts> xetla_load_global(
 /// VISA instruction: lsc_load.ugm
 ///
 /// @tparam Ty is element type.
-/// @tparam NElts is the number of elements to load per address (i.e. vector_size per SIMD channel).
+/// @tparam NElts is the number of elements to load per address (i.e.
+/// vector_size per SIMD channel).
 /// @tparam DS is the data size.
 /// @tparam L1H is L1 cache hint.
 /// @tparam L2H is L2 cache hint.
@@ -333,7 +337,8 @@ __XETLA_API xetla_vector<Ty, NElts> xetla_load_global(
 /// VISA instruction: lsc_store.ugm
 ///
 /// @tparam Ty is element type.
-/// @tparam NElts is the number of elements to store per address (i.e. vector_size per SIMD channel).
+/// @tparam NElts is the number of elements to store per address (i.e.
+/// vector_size per SIMD channel).
 /// @tparam DS is the data size.
 /// @tparam L1H is L1 cache hint.
 /// @tparam L2H is L2 cache hint.
@@ -364,7 +369,8 @@ __XETLA_API void xetla_store_global(Ty *p, xetla_vector<Toffset, N> offsets,
 /// VISA instruction: lsc_store.ugm
 ///
 /// @tparam Ty is element type.
-/// @tparam NElts is the number of elements to store per address (i.e. vector_size per SIMD channel).
+/// @tparam NElts is the number of elements to store per address (i.e.
+/// vector_size per SIMD channel).
 /// @tparam DS is the data size.
 /// @tparam L1H is L1 cache hint.
 /// @tparam L2H is L2 cache hint.
@@ -479,14 +485,16 @@ __XETLA_API void xetla_local_init() {
 }
 
 /// @brief SLM scattered load.
-/// Collects elements located at slm and returns them as a single \ref xetla_vector object.
+/// Collects elements located at slm and returns them as a single \ref
+/// xetla_vector object.
 ///
 /// Supported platforms: DG2, PVC
 ///
 /// VISA instruction: lsc_load.slm
 ///
 /// @tparam Ty is element type.
-/// @tparam NElts is the number of elements to load per address (i.e. vector_size per SIMD channel).
+/// @tparam NElts is the number of elements to load per address (i.e.
+/// vector_size per SIMD channel).
 /// @tparam DS is the data size.
 /// @tparam N is the number of SIMD channels (platform dependent).
 /// @param offsets [in] is the zero-based offsets for SLM buffer in bytes.
@@ -508,14 +516,16 @@ __XETLA_API xetla_vector<Ty, N * NElts> xetla_load_local(
 }
 
 /// @brief SLM block load. (transposed gather with 1 channel).
-/// Collects elements located at slm and returns them as a single \ref xetla_vector object.
+/// Collects elements located at slm and returns them as a single \ref
+/// xetla_vector object.
 ///
 /// Supported platforms: DG2, PVC
 ///
 /// VISA instruction: lsc_load.slm
 ///
 /// @tparam Ty is element type.
-/// @tparam NElts is the number of elements to load per address (i.e. vector_size per SIMD channel).
+/// @tparam NElts is the number of elements to load per address (i.e.
+/// vector_size per SIMD channel).
 /// @tparam DS is the data size.
 /// @param offset [in] is the zero-based offset for SLM buffer in bytes.
 /// @return is a xetla_vector of type T and size NElts.
@@ -540,7 +550,8 @@ __XETLA_API xetla_vector<Ty, NElts> xetla_load_local(uint32_t offset) {
 /// VISA instruction: lsc_store.slm
 ///
 /// @tparam Ty is element type.
-/// @tparam NElts is the number of elements to store per address (i.e. vector_size per SIMD channel).
+/// @tparam NElts is the number of elements to store per address (i.e.
+/// vector_size per SIMD channel).
 /// @tparam DS is the data size.
 /// @tparam N is the number of SIMD channels (platform dependent).
 /// @param offsets [in] is the zero-based offsets for SLM buffer in bytes.
@@ -568,7 +579,8 @@ __XETLA_API void xetla_store_local(xetla_vector<uint32_t, N> offsets,
 /// VISA instruction: lsc_store.slm
 ///
 /// @tparam Ty is element type.
-/// @tparam NElts is the number of elements to store per address (i.e. vector_size per SIMD channel).
+/// @tparam NElts is the number of elements to store per address (i.e.
+/// vector_size per SIMD channel).
 /// @tparam DS is the data size.
 /// @param offset [in] is the zero-based offset for SLM buffer in bytes.
 /// @param vals   [in] is values to store.

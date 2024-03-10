@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -27,23 +27,23 @@ template <int idx, typename tile_op_args_t>
 struct tile_op_arg_helper_t {
     tile_op_args_t args;
     inline tile_op_arg_helper_t(tile_op_args_t args_) : args(args_) {}
-    // Be aware of the risks: Rule of three (copy constructor, copy assignment, destructor)
-    // Please check if you need to add self-define destructor
+    // Be aware of the risks: Rule of three (copy constructor, copy assignment,
+    // destructor) Please check if you need to add self-define destructor
     // ~tile_op_arg_helper_t(){}
     inline tile_op_arg_helper_t(
             const tile_op_arg_helper_t<idx, tile_op_args_t> &args_helper)
         : args(args_helper.args) {}
-    // Be aware of the risks: Rule of three (copy constructor, copy assignment, destructor)
-    // Please check if you need to add self-define destructor
-    // inline ~tile_op_arg_helper_t(){}
+    // Be aware of the risks: Rule of three (copy constructor, copy assignment,
+    // destructor) Please check if you need to add self-define destructor inline
+    // ~tile_op_arg_helper_t(){}
     inline tile_op_arg_helper_t &operator=(
             const tile_op_arg_helper_t<idx, tile_op_args_t> &args_helper) {
         this->args = args_helper.args;
         return *this;
     }
     inline tile_op_arg_helper_t() = default;
-    // Be aware of the risks: Rule of three (copy constructor, copy assignment, destructor)
-    // Please check if you need to add self-define destructor
+    // Be aware of the risks: Rule of three (copy constructor, copy assignment,
+    // destructor) Please check if you need to add self-define destructor
     // ~tile_op_arg_helper_t(){}
 
     inline tile_op_args_t get_args() const { return args; }
@@ -110,7 +110,7 @@ private:
                 const coord_t &coord, const arguments_t &args_helper,
                 uint32_t slm_base = 0, uint32_t nbarrier_base = 0) {
             curr_tile_op_t curr_tile_op;
-            //call the actual tile op
+            // call the actual tile op
             curr_tile_op(matAcc, coord,
                     args_helper.template get<curr_idx, curr_tile_op_args_t>(),
                     slm_base, nbarrier_base);

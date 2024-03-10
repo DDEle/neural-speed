@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -32,7 +32,6 @@ namespace gpu::xetla::group {
 template <typename tile_shape_, typename epilogue_t_, typename mem_desc_d_t_,
         typename mem_desc_atomic_sync_t_>
 struct epilogue_stream_k_t {
-
     static constexpr gpu_arch arch_tag = gpu_arch::Xe;
     using epilogue_t = epilogue_t_;
     using mem_desc_d_t = mem_desc_d_t_;
@@ -49,7 +48,8 @@ struct epilogue_stream_k_t {
     static constexpr uint32_t wg_size_x = tile_shape::wg_size_x;
     static constexpr uint32_t wg_size_y = tile_shape::wg_size_y;
 
-    //Barrier required to synchronize all threads in workgroup for atomic sync across xecores
+    // Barrier required to synchronize all threads in workgroup for atomic sync
+    // across xecores
     static constexpr uint32_t barrier_count = 1;
     static constexpr uint32_t slm_size
             = mem_desc_c_t::is_local ? wg_tile_m * wg_tile_n : 0;
@@ -60,7 +60,8 @@ struct epilogue_stream_k_t {
     using dtype_d = typename mem_desc_d_t::dtype;
     using dtype_flag = typename mem_desc_atomic_sync_t::dtype;
 
-    //Use special residual op for finishing SK groups to read from scratchspace buffer and reduce in GRF; They also store zeros in scratchspace buffer
+    // Use special residual op for finishing SK groups to read from scratchspace
+    // buffer and reduce in GRF; They also store zeros in scratchspace buffer
     using residual_op_t
             = subgroup::elemwise_reduce_op_stream_k_t<reduce_op::sum, dtype_d>;
     using residual_op_args_t = typename residual_op_t::arguments_t;
@@ -81,15 +82,18 @@ struct epilogue_stream_k_t {
     }
 
     /// @brief Epilogue for stream_k.
-    ///Differentiate between Non-finishing SK groups vs finishing SK groups vs DP groups
-    ///Initial SK groups perform atomic writes to scratchspace
-    ///Final SK groups wait for their peers to finish , reads partial data from scratchspace and reduce in GRF
-    ///DP groups and finishing SK groups perform regular epilogue operations.
+    /// Differentiate between Non-finishing SK groups vs finishing SK groups vs DP
+    /// groups Initial SK groups perform atomic writes to scratchspace Final SK
+    /// groups wait for their peers to finish , reads partial data from
+    /// scratchspace and reduce in GRF DP groups and finishing SK groups perform
+    /// regular epilogue operations.
     /// @tparam matAcc_t Is the type of the input tile.
     /// @param g Is the workgroup of the current tile.
     /// @param matAcc Is the input tile.
-    /// @param mem_desc_c Is the memory description of matC, including base, shape and coordinate.
-    /// @param dp_group indicates whether current group is data-parallel or stream_k
+    /// @param mem_desc_c Is the memory description of matC, including base, shape
+    /// and coordinate.
+    /// @param dp_group indicates whether current group is data-parallel or
+    /// stream_k
     template <typename matAcc_t>
     __XETLA_API KERNEL_FUNC void operator()(work_group_t &g, matAcc_t &matAcc,
             mem_desc_c_t mem_desc_c, mem_desc_d_t mem_desc_d,
@@ -97,7 +101,6 @@ struct epilogue_stream_k_t {
             int first_group_idx, bool tile_finished, bool tile_started,
             epilogue_args_t epilogue_args, uint32_t slm_base = 0,
             uint32_t nbarrier_base = 0) {
-
         static constexpr uint32_t tile_size_x = matAcc_t::tile_size_x;
         static constexpr uint32_t tile_size_y = matAcc_t::tile_size_y;
         static constexpr uint32_t block_size_x = matAcc_t::block_size_x;
@@ -114,34 +117,34 @@ struct epilogue_stream_k_t {
 
         update_sg_tile_tdesc(g, mem_desc_d);
 
-        //Addressing for atomic signal
+        // Addressing for atomic signal
         xetla_mask<16> pred(0);
         pred[0] = 1;
         xetla_vector<uint32_t, 16> flag_offsets
                 = xetla_vector_gen<uint32_t, 16>(0, 1);
         flag_offsets
-                += first_group_idx; // first_group_idx indicates the first peer of the sliced tile
+                += first_group_idx; // first_group_idx indicates the first peer
+        // of the sliced tile
         flag_offsets = flag_offsets * sizeof(dtype_flag);
         int32_t sg_id = g.get_id();
         dtype_flag *flag_pointer = mem_desc_atomic_sync.base.base;
 
-        //SK group , Sliced Tile - SK group handles starting slice or middle slice
+        // SK group , Sliced Tile - SK group handles starting slice or middle slice
         if (!tile_finished) {
-
-            //Perform atomic writes and signal to atomic counter
+            // Perform atomic writes and signal to atomic counter
             matD_atomic_payload_t matD_atomic_payload(mem_desc_d);
-            //Atomic store with OOB check
+            // Atomic store with OOB check
             subgroup::tile_store(matAcc, matD_atomic_payload);
 
-            //Fence to guarantee write completion
+            // Fence to guarantee write completion
             xetla_fence<memory_kind::untyped_global, fence_op::evict,
                     fence_scope::tile>();
 
-            //Group sync to make sure fence is sent
+            // Group sync to make sure fence is sent
             nbarrier.arrive();
             nbarrier.wait();
 
-            //Signal to other peers
+            // Signal to other peers
             if (sg_id == 0) {
                 xetla_vector<dtype_flag, 16> signal_val(1);
                 xetla_tatomic_store_global<dtype_flag, 16, cache_hint::uncached,
@@ -150,27 +153,23 @@ struct epilogue_stream_k_t {
             }
 
         } else {
-
-            //last SK group of corresponding sliced tile
+            // last SK group of corresponding sliced tile
             if (!tile_started) {
-
-                //Number of previous peers that have contributed to this sliced tile
+                // Number of previous peers that have contributed to this sliced tile
                 uint32_t num_peers = group_idx - first_group_idx;
 
-                //Group sync
+                // Group sync
                 nbarrier.arrive();
                 nbarrier.wait();
 
                 if (sg_id == 0) {
-
                     xetla_vector<dtype_flag, 16> ret_val(0);
                     xetla_vector<dtype_flag, 16> old_val = num_peers;
                     xetla_vector<dtype_flag, 16> zero_val(0);
 
-                    //Use atomic cmpxchg to test if previous peers have finished writing
-                    //Exchange with value zero to clear the flag
+                    // Use atomic cmpxchg to test if previous peers have finished writing
+                    // Exchange with value zero to clear the flag
                     while (ret_val[0] != num_peers) {
-
                         ret_val = xetla_atomic_global<atomic_op::cmpxchg,
                                 dtype_flag, 16, data_size::default_size,
                                 cache_hint::uncached, cache_hint::write_back>(
@@ -178,11 +177,11 @@ struct epilogue_stream_k_t {
                                 pred);
                     }
                 }
-                //Group sync
+                // Group sync
                 nbarrier.arrive();
                 nbarrier.wait();
 
-                //Invoke stream_k residual op
+                // Invoke stream_k residual op
                 residual_op_t residual_op;
                 residual_op_args_t residual_args(
                         mem_desc_d.base, mem_desc_d.shape);
@@ -190,7 +189,8 @@ struct epilogue_stream_k_t {
                 residual_op(matAcc, mem_desc_d.coord, residual_args);
             }
 
-            //Finishing SK groups and DP Groups perform normal epilogue operations - post_op fusion + output conversion and write to output buffer
+            // Finishing SK groups and DP Groups perform normal epilogue operations -
+            // post_op fusion + output conversion and write to output buffer
             epilogue_t epilogue;
             epilogue(g, matAcc, mem_desc_c, epilogue_args, slm_base,
                     nbarrier_base);

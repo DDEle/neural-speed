@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -129,14 +129,18 @@ struct layer_norm_bwd_t<dtype_x_, dtype_y_, dtype_weight_, dtype_acc_,
     };
 
 private:
-    /// @brief This is the group all reduce for layer norm bwd. Use slm double buffering to exchange the data.
+    /// @brief This is the group all reduce for layer norm bwd. Use slm double
+    /// buffering to exchange the data.
     ///
     /// @tparam T Is the data type to do the reduction
     /// @tparam SZ Is the vector size per item
-    /// @tparam N Is the number of independent items for one subgroup to do the parallel all-reduction
+    /// @tparam N Is the number of independent items for one subgroup to do the
+    /// parallel all-reduction
     /// @tparam Op Is the reduction op
-    /// @tparam wg_size_x Is the wg size in x direction, i.e. is the number of threads that participate in this reduction.
-    /// @tparam wg_size_y Is the wg size in y direction, is the number of parallel reductions in the wg(use to calculated the slm address).
+    /// @tparam wg_size_x Is the wg size in x direction, i.e. is the number of
+    /// threads that participate in this reduction.
+    /// @tparam wg_size_y Is the wg size in y direction, is the number of parallel
+    /// reductions in the wg(use to calculated the slm address).
     /// @tparam arch_
     template <typename T, uint32_t SZ, uint32_t N, reduce_op Op,
             uint32_t wg_size_x, uint32_t wg_size_y,

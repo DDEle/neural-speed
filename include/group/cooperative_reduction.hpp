@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -28,13 +28,15 @@ namespace gpu::xetla::group {
 /// @tparam reduce_kind Is the reduction type.
 /// @tparam tile_shape Is the group-level tile shape.
 /// @tparam matAcc_t Is the input mat type.
-/// @tparam num_cooperative_wg Is the number of workgroups to do the cooperation.
+/// @tparam num_cooperative_wg Is the number of workgroups to do the
+/// cooperation.
 /// @tparam arch_tag Is the HW architecture.
 template <reduce_op reduce_kind, typename tile_shape, typename matAcc_t,
         uint32_t num_cooperative_wg, gpu_arch arch_tag, class enable = void>
 class cooperative_reduce_t {};
 
-/// @brief Workgroups to do the cooperative reduction. Specialized for Xe architecture.
+/// @brief Workgroups to do the cooperative reduction. Specialized for Xe
+/// architecture.
 template <reduce_op reduce_kind, typename tile_shape_, typename matAcc_t,
         uint32_t num_cooperative_wg, gpu_arch arch_tag_>
 class cooperative_reduce_t<reduce_kind, tile_shape_, matAcc_t,
@@ -123,7 +125,8 @@ public:
     /// 3) workgroups loads slice of tile data, do the reduction.
     /// @note only workgroups with coop_id_x < coop_num_x have valid data.
     /// @param g Is the workgroup of the current tile.
-    /// @param mat_slice Is the output of the reduction. Each workgroup only keeps part of the tile data.
+    /// @param mat_slice Is the output of the reduction. Each workgroup only keeps
+    /// part of the tile data.
     /// @param matAcc Is the input of the reduction.
     /// @param slm_base Is the slm base address.
     /// @param nbarrier_base Is the named barrier base.

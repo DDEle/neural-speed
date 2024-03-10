@@ -372,7 +372,7 @@ void dequantize_gemm_run(int iter) {
             = xetla::group::compute_policy_int4_dequantize<compute_attr,
                     perf_tuning_knob, data_type_scale, data_type_zero_pt,
                     gpu::xetla::group::quant_mode::S4_FULLRANGE_NO_ZP,
-                    dequant_s, gpu_arch::Xe>;
+                    dequant_s, mma_engine::xmx, gpu_arch::Xe>;
 
     using gemm_t = xetla::group::gemm_t<compute_policy, tile_shape,
             mem_desc_a_t, mem_desc_b_t>;

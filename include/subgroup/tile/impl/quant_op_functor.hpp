@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -30,7 +30,8 @@
 namespace gpu::xetla::subgroup {
 
 /// @brief Is the dequantization op functor.
-/// @tparam tile_op_t Is the dequantization method, share the same API with tile_op/chained_tile_op.
+/// @tparam tile_op_t Is the dequantization method, share the same API with
+/// tile_op/chained_tile_op.
 /// @tparam arch_tag Is the hardware architecture tag.
 template <typename tile_op_t, gpu_arch arch_tag, class enable = void>
 struct dequant_op_t {};
@@ -38,7 +39,7 @@ struct dequant_op_t {};
 template <typename tile_op_t_, gpu_arch arch_tag>
 struct dequant_op_t<tile_op_t_, arch_tag,
         std::enable_if_t<(arch_tag == gpu_arch::Xe)>> {
-    //may need to add some limitations to tile_op used in dequant_op
+    // may need to add some limitations to tile_op used in dequant_op
     using tile_op_t = tile_op_t_;
     struct arguments_t {
         typename tile_op_t::arguments_t tile_op_args;
@@ -56,7 +57,8 @@ struct dequant_op_t<tile_op_t_, arch_tag,
 };
 
 /// @brief Is the quantization op functor.
-/// @tparam tile_op_t Is the quantization method, share the same API with tile_op/chained_tile_op.
+/// @tparam tile_op_t Is the quantization method, share the same API with
+/// tile_op/chained_tile_op.
 /// @tparam arch_tag Is the hardware architecture tag.
 template <typename tile_op_t, gpu_arch arch_tag, class enable = void>
 struct quant_op_t {};
@@ -64,7 +66,7 @@ struct quant_op_t {};
 template <typename tile_op_t_, gpu_arch arch_tag>
 struct quant_op_t<tile_op_t_, arch_tag,
         std::enable_if_t<(arch_tag == gpu_arch::Xe)>> {
-    //may need to add some limitations to tile_op used in dequant_op
+    // may need to add some limitations to tile_op used in dequant_op
     using tile_op_t = tile_op_t_;
 
     struct arguments_t {

@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -45,7 +45,7 @@ tile_reduce(mat_t &src) {
     xetla_vector<dtype_acc, tile_size_y * block_size_x> acc;
 #pragma unroll
     for (uint32_t i = 0; i < tile_size_y / block_size_y; i++) {
-        //j=0, initial the buffer
+        // j=0, initial the buffer
         {
             auto src_reg = (src.reg).xetla_select<block_elems, 1>(
                     (i * num_block_x) * block_elems);
@@ -74,7 +74,7 @@ tile_reduce(mat_t &src) {
                 = tile_size_y / block_size_y * block_size_y;
         constexpr uint32_t tail_size_y = tile_size_y % block_size_y;
         constexpr uint32_t tail_block_elems = tail_size_y * block_size_x;
-        //j=0, initial the buffer
+        // j=0, initial the buffer
         {
             auto src_reg = (src.reg).xetla_select<tail_block_elems, 1>(
                     tail_start_y * tile_size_x);
@@ -253,7 +253,8 @@ tile_reduce(mat_t &src) {
 /// @param dst Is the reference of the destination tile object.
 /// @param src Is the reference of the destination tile object.
 /// @return No return, in-place update in the destination tile.
-/// @note This is only for reduce add, and will be deprecated in future. Please use tile_reduce instead.
+/// @note This is only for reduce add, and will be deprecated in future. Please
+/// use tile_reduce instead.
 template <typename T_dst, typename T_src, bool accumulate = true,
         typename dtype_acc = float, uint32_t num_acc = 4>
 XETLA_MARKER(

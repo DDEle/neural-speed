@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -23,7 +23,8 @@
 
 namespace gpu::xetla::subgroup {
 
-/// @brief Is the tile mma operation functor, specialized for Xe and matrix engine.
+/// @brief Is the tile mma operation functor, specialized for Xe and matrix
+/// engine.
 template <typename matAcc_dst_t_, typename matAcc_src_t_, typename matB_t_,
         typename matA_t_, gpu_arch arch_tag_>
 struct tile_mma_t<matAcc_dst_t_, matAcc_src_t_, matB_t_, matA_t_,
@@ -111,7 +112,7 @@ struct tile_mma_t<matAcc_dst_t_, matAcc_src_t_, matB_t_, matA_t_,
                             mma_i * c_mma_elems);
                     auto dst_sub_blk = dst_block.xetla_select<c_mma_elems, 1>(
                             mma_i * c_mma_elems);
-                    { //k=0
+                    { // k=0
                         auto a_block = a.reg.xetla_select<a_block_elems, 1>(
                                 (i * num_block_k) * a_block_elems);
                         auto a_sub_blk = a_block.xetla_select<a_mma_elems, 1>(
@@ -181,7 +182,7 @@ struct tile_mma_t<matAcc_dst_t_, matAcc_src_t_, matB_t_, matA_t_,
                             mma_i * c_mma_elems);
                     auto dst_sub_blk = dst_block.xetla_select<c_mma_elems, 1>(
                             mma_i * c_mma_elems);
-                    { //k=0
+                    { // k=0
                         auto a_block
                                 = a.reg.xetla_select<a_tail_block_elems, 1>(
                                         a_tail_elems_start);

@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -221,7 +221,8 @@ __XETLA_API T xetla_min(T src0, T src1, Sat sat = {}) {
     return __ESIMD_NS::min<T>(src0, src1, Sat::value);
 }
 
-/// @brief Calculate exponent value for each element of the input vector, the base is e.
+/// @brief Calculate exponent value for each element of the input vector, the
+/// base is e.
 /// @tparam T element type of the input and return vectors.
 /// @tparam SZ size of the input and returned vectors.
 /// @param src the input vector.
@@ -251,7 +252,8 @@ __XETLA_API T xetla_exp(T src, Sat sat = {}) {
     return __ESIMD_NS::exp<T>(src, Sat::value);
 }
 
-/// @brief Calculate exponent value for each element of the input vector, the base is 2.
+/// @brief Calculate exponent value for each element of the input vector, the
+/// base is 2.
 /// @tparam T element type of the input and return vectors.
 /// @tparam SZ size of the input and returned vectors.
 /// @param src the input vector.
@@ -284,7 +286,8 @@ __XETLA_API T xetla_exp2(T src, Sat sat = {}) {
 /// @brief Calculate the inversion, i.e. 1/x (vector version).
 /// @tparam T Is the element data type
 /// @tparam SZ Is the element num in the vector
-/// @tparam Sat Is the saturation flag(off by default). Possible values: saturation_on/saturation_off.
+/// @tparam Sat Is the saturation flag(off by default). Possible values:
+/// saturation_on/saturation_off.
 /// @param src Is the input vector.
 /// @return Returns the result of 1/x
 template <typename T, int SZ, typename Sat = xetla_saturation_off_tag>
@@ -298,7 +301,8 @@ __XETLA_API xetla_vector<T, SZ> xetla_inv(
 
 /// @brief Calculate the inversion, i.e. 1/x (scalar version).
 /// @tparam T Is the element data type
-/// @tparam Sat Is the saturation flag(off by default). Possible values: saturation_on/saturation_off.
+/// @tparam Sat Is the saturation flag(off by default). Possible values:
+/// saturation_on/saturation_off.
 /// @param src Is the input scalar.
 /// @return Returns the result of 1/x
 template <typename T, typename Sat = xetla_saturation_off_tag>
@@ -309,10 +313,12 @@ __XETLA_API T xetla_inv(T src, Sat sat = {}) {
     return __ESIMD_NS::inv(src, Sat::value);
 }
 
-/// @brief Calculate the square root, i.e. x^(1/2), this is not IEEE754-compatible (vector version).
+/// @brief Calculate the square root, i.e. x^(1/2), this is not
+/// IEEE754-compatible (vector version).
 /// @tparam T Is the element data type
 /// @tparam SZ Is the element num in the vector
-/// @tparam Sat Is the saturation flag(off by default). Possible values: saturation_on/saturation_off.
+/// @tparam Sat Is the saturation flag(off by default). Possible values:
+/// saturation_on/saturation_off.
 /// @param src Is the input vector.
 /// @return Returns the result of x^(1/2)
 template <typename T, int SZ, typename Sat = xetla_saturation_off_tag>
@@ -324,9 +330,11 @@ __XETLA_API xetla_vector<T, SZ> xetla_sqrt(
     return __ESIMD_NS::sqrt(src, Sat::value);
 }
 
-/// @brief Calculate the square root, i.e. x^(1/2), this is not IEEE754-compatible (scalar version).
+/// @brief Calculate the square root, i.e. x^(1/2), this is not
+/// IEEE754-compatible (scalar version).
 /// @tparam T Is the element data type
-/// @tparam Sat Is the saturation flag(off by default). Possible values: saturation_on/saturation_off.
+/// @tparam Sat Is the saturation flag(off by default). Possible values:
+/// saturation_on/saturation_off.
 /// @param src Is the input vector.
 /// @return Returns the result of x^(1/2)
 template <typename T, typename Sat = xetla_saturation_off_tag>
@@ -337,10 +345,12 @@ __XETLA_API T xetla_sqrt(T src, Sat sat = {}) {
     return __ESIMD_NS::sqrt(src, Sat::value);
 }
 
-/// @brief Calculate the square root, i.e. x^(1/2), IEEE754-compatible (vector version).
+/// @brief Calculate the square root, i.e. x^(1/2), IEEE754-compatible (vector
+/// version).
 /// @tparam T Is the element data type
 /// @tparam SZ Is the element num in the vector
-/// @tparam Sat Is the saturation flag(off by default). Possible values: saturation_on/saturation_off.
+/// @tparam Sat Is the saturation flag(off by default). Possible values:
+/// saturation_on/saturation_off.
 /// @param src Is the input vector.
 /// @return Returns the result of x^(1/2)
 template <typename T, int SZ, typename Sat = xetla_saturation_off_tag>
@@ -352,9 +362,11 @@ __XETLA_API xetla_vector<T, SZ> xetla_sqrt_ieee(
     return __ESIMD_NS::sqrt_ieee(src, Sat::value);
 }
 
-/// @brief Calculate the square root, i.e. x^(1/2), IEEE754-compatible (scalar version).
+/// @brief Calculate the square root, i.e. x^(1/2), IEEE754-compatible (scalar
+/// version).
 /// @tparam T Is the element data type
-/// @tparam Sat Is the saturation flag(off by default). Possible values: saturation_on/saturation_off.
+/// @tparam Sat Is the saturation flag(off by default). Possible values:
+/// saturation_on/saturation_off.
 /// @param src Is the input vector.
 /// @return Returns the result of x^(1/2)
 template <typename T, typename Sat = xetla_saturation_off_tag>
@@ -365,10 +377,12 @@ __XETLA_API T xetla_sqrt_ieee(T src, Sat sat = {}) {
     return __ESIMD_NS::sqrt_ieee(src, Sat::value);
 }
 
-/// @brief Calculate the inversion of square root, i.e. 1/sqrt(x) (vector version).
+/// @brief Calculate the inversion of square root, i.e. 1/sqrt(x) (vector
+/// version).
 /// @tparam T Is the element data type
 /// @tparam SZ Is the element num in the vector
-/// @tparam Sat Is the saturation flag(off by default). Possible values: saturation_on/saturation_off.
+/// @tparam Sat Is the saturation flag(off by default). Possible values:
+/// saturation_on/saturation_off.
 /// @param src Is the input vector.
 /// @return Returns the result of 1/sqrt(x)
 template <typename T, int SZ, typename Sat = xetla_saturation_off_tag>
@@ -380,9 +394,11 @@ __XETLA_API xetla_vector<T, SZ> xetla_rsqrt(
     return __ESIMD_NS::rsqrt(src, Sat::value);
 }
 
-/// @brief Calculate the inversion of square root, i.e. 1/sqrt(x) (scalar version).
+/// @brief Calculate the inversion of square root, i.e. 1/sqrt(x) (scalar
+/// version).
 /// @tparam T Is the element data type
-/// @tparam Sat Is the saturation flag(off by default). Possible values: saturation_on/saturation_off.
+/// @tparam Sat Is the saturation flag(off by default). Possible values:
+/// saturation_on/saturation_off.
 /// @param src Is the input vector.
 /// @return Returns the result of 1/sqrt(x)
 template <typename T, typename Sat = xetla_saturation_off_tag>
@@ -449,7 +465,8 @@ __XETLA_API T xetla_tanh(T src) {
     return (src >= 10) ? 1 : ret;
 }
 
-/// Add two unsigned integer vectors, return the result and in-place update the carry.
+/// Add two unsigned integer vectors, return the result and in-place update the
+/// carry.
 /// @tparam T element type of the src, should be uint32_t.
 /// @tparam SZ element num of the vector.
 /// @param src0 is the src0 of the add operation.
@@ -471,7 +488,8 @@ __XETLA_API xetla_vector<T, SZ> xetla_add_c(xetla_vector<T, SZ> src0,
     return out;
 }
 
-/// Add one unsigned integer vectors with a scalar, return the result and in-place update the carry.
+/// Add one unsigned integer vectors with a scalar, return the result and
+/// in-place update the carry.
 /// @tparam T element type of the src, should be uint32_t.
 /// @tparam SZ element num of the vector.
 /// @param src0 is the src0 of the add operation.
@@ -493,7 +511,8 @@ __XETLA_API xetla_vector<T, SZ> xetla_add_c(xetla_vector<T, SZ> src0, T src1,
     return out;
 }
 
-/// @brief Multiply src0 with src1, return the hi part and in-place update the lo part.
+/// @brief Multiply src0 with src1, return the hi part and in-place update the
+/// lo part.
 /// @tparam T0 Return data type, should be 32 bit integer.
 /// @tparam T1 Type of src0, should be 32 bit integer.
 /// @tparam T2 Type of src1, should be 32 bit integer.
@@ -566,7 +585,8 @@ __XETLA_API xetla_vector<T1, SZ> xetla_add(
     static_assert(
             !((is_internal_type<T0>::value) || (is_internal_type<T1>::value)),
             "The internal types are not yet supported!");
-    /// for esimd, current we don't have add with saturation, this is the emulation
+    /// for esimd, current we don't have add with saturation, this is the
+    /// emulation
     xetla_vector<T0, SZ> temp = src0 + src1;
     if constexpr (std::is_same_v<Sat, xetla_saturation_off_tag>)
         return xetla_vector<T1, SZ>(temp);

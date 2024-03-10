@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -174,7 +174,8 @@ struct gelu_fwd_op_t {
 /// @tparam arch_tag Is the hardware architecture tag.
 template <typename dtype_out, gpu_arch arch_tag, class enable = void>
 struct gelu_fwd_w_op_t {};
-/// @brief Is the element-wise gelu training forward op functor, specialized for Xe architecture.
+/// @brief Is the element-wise gelu training forward op functor, specialized for
+/// Xe architecture.
 template <typename dtype_out_, gpu_arch arch_tag>
 struct gelu_fwd_w_op_t<dtype_out_, arch_tag,
         std::enable_if_t<(arch_tag == gpu_arch::Xe)>> {
@@ -286,13 +287,15 @@ struct gelu_fwd_w_op_t<dtype_out_, arch_tag,
 };
 
 /// @brief Is the element-wise gelu backward op functor.
-/// Load the gelu forward input buffer from memory and get the gradient data from matAcc, update the output in place.
-/// Used in epilogue::tile_op or chained_tile_op.
+/// Load the gelu forward input buffer from memory and get the gradient data
+/// from matAcc, update the output in place. Used in epilogue::tile_op or
+/// chained_tile_op.
 /// @tparam dtype_in Is the data type of the gelu forward input buffer.
 /// @tparam arch_tag Is the hardware architecture tag.
 template <typename dtype_in, gpu_arch arch_tag, class enable = void>
 struct gelu_bwd_op_t {};
-/// @brief Is the element-wise gelu backward op functor, specialized for Xe architecture.
+/// @brief Is the element-wise gelu backward op functor, specialized for Xe
+/// architecture.
 template <typename dtype_in_, gpu_arch arch_tag>
 struct gelu_bwd_op_t<dtype_in_, arch_tag,
         std::enable_if_t<(arch_tag == gpu_arch::Xe)>> {
@@ -384,8 +387,8 @@ struct gelu_bwd_op_t<dtype_in_, arch_tag,
 };
 
 /// @brief Is the bias_add op functor.
-/// Load the 1d bias data from memory and get the input from matAcc, update the output in place.
-/// Used in epilogue::tile_op or chained_tile_op.
+/// Load the 1d bias data from memory and get the input from matAcc, update the
+/// output in place. Used in epilogue::tile_op or chained_tile_op.
 /// @tparam dtype_bias Is the data type of bias buffer.
 /// @tparam arch_tag Is the hardware architecture tag.
 template <typename mem_desc_bias_t_, gpu_arch arch_tag, class enable = void>
@@ -525,7 +528,6 @@ struct scale_v_offset_v_op_t<scale_dtype_, offset_dtype_, arch_tag,
             const coord_t &coord, const arguments_t &args,
             [[maybe_unused]] uint32_t slm_base = 0,
             [[maybe_unused]] uint32_t nbarrier_base = 0) {
-
         static constexpr uint32_t tile_size_x = matAcc_t::tile_size_x;
         static constexpr uint32_t tile_size_y = matAcc_t::tile_size_y;
         static constexpr uint32_t block_size_x = matAcc_t::block_size_x;
@@ -642,7 +644,6 @@ struct scale_v_op_t<scale_dtype_, arch_tag,
             const coord_t &coord, const arguments_t &args,
             [[maybe_unused]] uint32_t slm_base = 0,
             [[maybe_unused]] uint32_t nbarrier_base = 0) {
-
         static constexpr uint32_t tile_size_x = matAcc_t::tile_size_x;
         static constexpr uint32_t tile_size_y = matAcc_t::tile_size_y;
         static constexpr uint32_t block_size_x = matAcc_t::block_size_x;
@@ -716,7 +717,8 @@ struct scale_v_op_t<scale_dtype_, arch_tag,
 template <reduce_op reduce_kind, typename dtype_in, gpu_arch arch_tag,
         class enable = void>
 struct elemwise_reduce_op_t {};
-/// @brief Is the element-wise reduce op functor, specialized for Xe architecture.
+/// @brief Is the element-wise reduce op functor, specialized for Xe
+/// architecture.
 template <reduce_op reduce_kind_, typename dtype_in_, gpu_arch arch_tag>
 struct elemwise_reduce_op_t<reduce_kind_, dtype_in_, arch_tag,
         std::enable_if_t<(arch_tag <= gpu_arch::Xe)>> {
@@ -816,18 +818,20 @@ struct elemwise_reduce_op_t<reduce_kind_, dtype_in_, arch_tag,
     }
 };
 
-/// @brief Is the element-wise reduce op functor, specialized for stream_k dispatch
-///Load partial sum from scratchspace
-///Reduce in GRF
-///Store zero to scratchspace
-///Do these steps with smaller tiles to minimize GRF pressure
+/// @brief Is the element-wise reduce op functor, specialized for stream_k
+/// dispatch
+/// Load partial sum from scratchspace
+/// Reduce in GRF
+/// Store zero to scratchspace
+/// Do these steps with smaller tiles to minimize GRF pressure
 /// @tparam reduce_kind Is the reduce type, can be sum, prod, min and max.
 /// @tparam dtype_in Is the memory side buffer data type.
 /// @tparam arch_tag Is the hardware architecture tag.
 template <reduce_op reduce_kind, typename dtype_in,
         gpu_arch arch_tag = gpu_arch::Xe>
 struct elemwise_reduce_op_stream_k_t {};
-/// @brief Is the element-wise reduce op functor, specialized for Xe architecture.
+/// @brief Is the element-wise reduce op functor, specialized for Xe
+/// architecture.
 template <reduce_op reduce_kind_, typename dtype_in_>
 struct elemwise_reduce_op_stream_k_t<reduce_kind_, dtype_in_, gpu_arch::Xe> {
     using dtype_in = dtype_in_;
@@ -874,7 +878,6 @@ struct elemwise_reduce_op_stream_k_t<reduce_kind_, dtype_in_, gpu_arch::Xe> {
         for (uint32_t i = 0; i < tile_size_y / block_size_y; i++) {
 #pragma unroll
             for (uint32_t j = 0; j < num_block_x; j++) {
-
                 tile_load<cache_hint::cached, cache_hint::cached>(
                         mat_in, mat_in_payload);
                 auto dst_reg = matAcc.reg.xetla_select<block_elems, 1>(
@@ -902,7 +905,6 @@ struct elemwise_reduce_op_stream_k_t<reduce_kind_, dtype_in_, gpu_arch::Xe> {
             constexpr int32_t tail_block_elems = tail_size_y * block_size_x;
 #pragma unroll
             for (uint32_t j = 0; j < num_block_x; j++) {
-
                 tile_load<cache_hint::cached, cache_hint::cached>(
                         mat_in, mat_in_payload);
                 auto dst_reg = matAcc.reg.xetla_select<tail_block_elems, 1>(
@@ -1000,14 +1002,15 @@ struct dropout_op_t<dtype_mask_, arch_tag,
 };
 
 /// @brief Is the random number generator and dropout op functor.
-/// Generate the mask data and get input from matAcc, do the scaling and zero out,
-/// update the output in place, dump the mask buffer to memory.
-/// Used in epilogue::tile_op or chained_tile_op.
+/// Generate the mask data and get input from matAcc, do the scaling and zero
+/// out, update the output in place, dump the mask buffer to memory. Used in
+/// epilogue::tile_op or chained_tile_op.
 /// @tparam dtype_mask Is the mask data type.
 /// @tparam arch_tag Is the hardware architecture tag.
 template <typename dtype_mask, gpu_arch arch_tag, class enable = void>
 struct rng_dropout_op_t {};
-/// @brief Is the random number generator and dropout op functor, specialized for Xe architecture.
+/// @brief Is the random number generator and dropout op functor, specialized
+/// for Xe architecture.
 template <typename dtype_mask_, gpu_arch arch_tag>
 struct rng_dropout_op_t<dtype_mask_, arch_tag,
         std::enable_if_t<(arch_tag == gpu_arch::Xe)>> {
@@ -1058,7 +1061,7 @@ struct rng_dropout_op_t<dtype_mask_, arch_tag,
                 msg_type_v<mask_out_tile_desc_t, mem_desc_mask_t::space>,
                 arch_tag>;
         if (args.prob == 0) { return; }
-        //calculate the scale internally
+        // calculate the scale internally
         float scale = 1.f / (1.f - args.prob);
         uint32_t threshold = uint32_t(args.prob * float(4294967296));
         xetla_vector<uint64_t, 1> rand_offset_v
@@ -1105,8 +1108,8 @@ struct rng_dropout_op_t<dtype_mask_, arch_tag,
 };
 
 /// @brief Is the scalar_multiply op functor.
-/// Get the input from matAcc, multiply with a scalar, update the output in place.
-/// Used in epilogue::tile_op or chained_tile_op.
+/// Get the input from matAcc, multiply with a scalar, update the output in
+/// place. Used in epilogue::tile_op or chained_tile_op.
 /// @tparam dtype_in Is the data type of multiplier buffer.
 /// @tparam arch_tag Is the hardware architecture tag.
 template <typename dtype_in, gpu_arch arch_tag, class enable = void>

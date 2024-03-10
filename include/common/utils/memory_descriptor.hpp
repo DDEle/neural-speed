@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -159,9 +159,9 @@ struct mem_desc_t<dtype_, layout_, space_, alignment_, 2> {
     inline mem_desc_t() = default;
     inline mem_desc_t(base_t base_, shape_t shape_, coord_t coord_)
         : shape(shape_), coord(coord_), base(base_) {}
-    // Be aware of the risks: Rule of three (copy constructor, copy assignment, destructor)
-    // Please check if you need to add self-define destructor
-    // inline ~mem_desc_t(){}
+    // Be aware of the risks: Rule of three (copy constructor, copy assignment,
+    // destructor) Please check if you need to add self-define destructor inline
+    // ~mem_desc_t(){}
     inline mem_desc_t(const this_type_t &mem_desc)
         : shape(mem_desc.shape), coord(mem_desc.coord), base(mem_desc.base) {}
 

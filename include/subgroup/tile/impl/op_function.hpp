@@ -24,7 +24,8 @@
 
 namespace gpu::xetla::subgroup {
 
-/// @brief Is the element wise data conversion, the src and dst tile should have the same layout.
+/// @brief Is the element wise data conversion, the src and dst tile should have
+/// the same layout.
 ///
 /// @tparam T_dst Is the destination tile data type.
 /// @tparam T_src Is the source tile data type.
@@ -74,14 +75,14 @@ __XETLA_API
     using dtype_dst = typename T_dst::dtype;
 
     xetla_vector<dtype_src, tile_elems> rnde_reg;
-    //rnde
+    // rnde
 #pragma unroll
     for (uint32_t i = 0; i < tile_elems; i += block_size_x) {
         rnde_reg.xetla_select<block_size_x, 1>(i)
                 = xetla_rnde<dtype_src, block_size_x>(
                         src.reg.xetla_select<block_size_x, 1>(i));
     }
-    //sat
+    // sat
 #pragma unroll
     for (uint32_t i = 0; i < tile_elems; i += block_size_x) {
         dst.reg.xetla_select<block_size_x, 1>(i)
@@ -90,7 +91,8 @@ __XETLA_API
     }
 }
 
-/// @brief element wise data conversion with scaling, the src and dst tile should have the same layout.
+/// @brief element wise data conversion with scaling, the src and dst tile
+/// should have the same layout.
 /// @tparam T_dst is the destination tile data type.
 /// @tparam T_src is the source tile data type.
 /// @param dst is the reference of the destination tile object.
@@ -298,7 +300,7 @@ vnni_reverse(T &mat_Acc) {
                     move_cols>();
             auto reg_dst = rdst.xetla_select<block_elems, 1>(
                     (i * num_block_x + j) * block_elems);
-            //transpose
+            // transpose
             auto reg_dst_2d = reg_dst.xetla_format<native_type_t<dtype>,
                     block_size_x, block_size_y>();
             for (uint32_t vnni_i = 0; vnni_i < vnni_stride; vnni_i++) {
@@ -328,7 +330,7 @@ vnni_reverse(T &mat_Acc) {
                     remain_move_rows, remain_move_cols>();
             auto reg_dst = rdst.xetla_select<remain_block_elems, 1>(
                     remain_elems_start + j * remain_block_elems);
-            //transpose
+            // transpose
             auto reg_dst_2d = reg_dst.xetla_format<native_type_t<dtype>,
                     block_size_x, remain_size_y>();
 
@@ -461,15 +463,13 @@ vnni_transform(T_dst &dst, T_src &src) {
     dst.reg = reg_dst;
 }
 
-/// @brief  Converts tiled layout to transpose_tiled layout.
+/// @brief Converts tiled layout to transpose_tiled layout.
 ///
 /// @tparam T Is the tile data type.
 /// @param mat_Acc Is the reference of the tile object.
 /// @return No return, update the data in-place.
 template <typename T>
-__XETLA_API typename std::enable_if_t<T::register_layout
-        == reg_layout::transpose_tiled>
-tile_transpose(T &mat_Acc) {
+__XETLA_API void tile_transpose(T &mat_Acc) {
     constexpr uint32_t tile_size_y = T::tile_size_y;
     constexpr uint32_t tile_size_x = T::tile_size_x;
     //     constexpr uint32_t tile_elems = tile_size_y * tile_size_x;
@@ -492,7 +492,8 @@ tile_transpose(T &mat_Acc) {
         dst_blk = trans_blk;
     }
 }
-/// @brief Broadcasts 1d src tile to the entire 2d tile, as well as do the data conversion.
+/// @brief Broadcasts 1d src tile to the entire 2d tile, as well as do the data
+/// conversion.
 ///
 /// @tparam T_dst Is the destination tile data type.
 /// @tparam T_src Is the source tile data type, interpreted as 1D data.
@@ -564,7 +565,8 @@ __XETLA_API
     }
 }
 
-/// @brief convert 2d tile in a tiled register layout to a 2d tile in a linear register layout
+/// @brief convert 2d tile in a tiled register layout to a 2d tile in a linear
+/// register layout
 ///
 /// @tparam T_dst Is the destination tile data type.
 /// @tparam T_src Is the source tile data type.
@@ -625,7 +627,8 @@ layout_convert(T_dst &dst, T_src &src) {
     }
 }
 
-/// @brief convert 2d tile in a linear register layout to a 2d tile in a tiled register layout
+/// @brief convert 2d tile in a linear register layout to a 2d tile in a tiled
+/// register layout
 ///
 /// @tparam T_dst Is the destination tile data type.
 /// @tparam T_src Is the source tile data type.

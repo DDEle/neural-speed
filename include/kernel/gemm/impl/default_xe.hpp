@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -76,13 +76,17 @@ class gemm_universal_t<dispatch_policy_default<group_swizzle_>, gemm_t_,
 
 public:
     /// @brief GEMM_UNIVERSAL arguments.
-    /// This is the interface for users to pass the application-related runtime variables.
+    /// This is the interface for users to pass the application-related runtime
+    /// variables.
     struct arguments_t {
-        /// @brief Is the size of the m dimension of the matrix multiplication (m x k x n).
+        /// @brief Is the size of the m dimension of the matrix multiplication (m x
+        /// k x n).
         uint32_t matrix_m;
-        /// @brief Is the size of the k dimension of the matrix multiplication (m x k x n).
+        /// @brief Is the size of the k dimension of the matrix multiplication (m x
+        /// k x n).
         uint32_t matrix_k;
-        /// @brief Is the size of the n dimension of the matrix multiplication (m x k x n).
+        /// @brief Is the size of the n dimension of the matrix multiplication (m x
+        /// k x n).
         uint32_t matrix_n;
         /// @brief Is the leading dimension (pitch) size of the matrix A in memory.
         uint32_t matA_ld;
@@ -106,15 +110,21 @@ public:
         static constexpr bool host_callable = true;
 
         /// @brief Constructs arguments with initialization list.
-        /// @param matrix_m_ Is the size of the m dimension of the matrix multiplication (m x k x n).
-        /// @param matrix_k_ Is the size of the k dimension of the matrix multiplication (m x k x n).
-        /// @param matrix_n_ Is the size of the n dimension of the matrix multiplication (m x k x n).
+        /// @param matrix_m_ Is the size of the m dimension of the matrix
+        /// multiplication (m x k x n).
+        /// @param matrix_k_ Is the size of the k dimension of the matrix
+        /// multiplication (m x k x n).
+        /// @param matrix_n_ Is the size of the n dimension of the matrix
+        /// multiplication (m x k x n).
         /// @param matA_base_ Is the base address of matrix A.
-        /// @param matA_ld_ Is the leading dimension (pitch) size of the matrix A in memory.
+        /// @param matA_ld_ Is the leading dimension (pitch) size of the matrix A in
+        /// memory.
         /// @param matB_base_ Is the base address of matrix B.
-        /// @param matB_ld_ Is the leading dimension (pitch) size of the matrix B in memory.
+        /// @param matB_ld_ Is the leading dimension (pitch) size of the matrix B in
+        /// memory.
         /// @param matC_base_ Is the base address of matrix C.
-        /// @param matC_ld_ Is the leading dimension (pitch) size of the matrix C in memory.
+        /// @param matC_ld_ Is the leading dimension (pitch) size of the matrix C in
+        /// memory.
         /// @param epilogue_args_ Is the epilogue arguments.
         inline arguments_t(uint32_t matrix_m_, uint32_t matrix_k_,
                 uint32_t matrix_n_, matA_base_t matA_base_, uint32_t matA_ld_,
@@ -131,9 +141,9 @@ public:
             , matB_base(matB_base_)
             , matC_base(matC_base_)
             , epilogue_args(epilogue_args_) {}
-        // Be aware of the risks: Rule of three (copy constructor, copy assignment, destructor)
-        // Please check if you need to add self-define destructor
-        // inline ~arguments_t(){}
+        // Be aware of the risks: Rule of three (copy constructor, copy assignment,
+        // destructor) Please check if you need to add self-define destructor inline
+        // ~arguments_t(){}
         inline arguments_t(const arguments_t &args)
             : matrix_m(args.matrix_m)
             , matrix_k(args.matrix_k)
@@ -181,7 +191,8 @@ public:
         return size;
     };
 
-    /// @brief Host helper function to get the expected local range under the current GEMM_UNIVERSAL config.
+    /// @brief Host helper function to get the expected local range under the
+    /// current GEMM_UNIVERSAL config.
     /// @return Expected local range.
     static cl::sycl::range<3> get_local_range() {
         uint32_t local_range_m = (wg_tile_m + sg_tile_m - 1) / sg_tile_m;
@@ -192,9 +203,12 @@ public:
         return cl::sycl::range<3> {1, local_range_m, local_range_n};
     };
 
-    /// @brief Host helper function to get the expected group range under the current GEMM_UNIVERSAL config.
-    /// @param matrix_m Is the size of the m dimension of the matrix multiplication (m x k x n).
-    /// @param matrix_n Is the size of the n dimension of the matrix multiplication (m x k x n).
+    /// @brief Host helper function to get the expected group range under the
+    /// current GEMM_UNIVERSAL config.
+    /// @param matrix_m Is the size of the m dimension of the matrix
+    /// multiplication (m x k x n).
+    /// @param matrix_n Is the size of the n dimension of the matrix
+    /// multiplication (m x k x n).
     /// @return Expected group range.
     static cl::sycl::range<3> get_group_range(
             uint32_t matrix_m, uint32_t matrix_n) {
@@ -206,8 +220,10 @@ public:
         return cl::sycl::range<3> {1, group_range_m, group_range_n};
     };
 
-    /// @brief Host helper function to get the expected nd_range under the current GEMM_UNIVERSAL config.
-    /// @param args Is the GEMM_UNIVERSAL arguments for application-related runtime variables.
+    /// @brief Host helper function to get the expected nd_range under the current
+    /// GEMM_UNIVERSAL config.
+    /// @param args Is the GEMM_UNIVERSAL arguments for application-related
+    /// runtime variables.
     /// @return Expected nd_range.
     static cl::sycl::nd_range<3> get_nd_range(arguments_t &args) {
         cl::sycl::range<3> local_range = get_local_range();
@@ -217,7 +233,8 @@ public:
     };
 
     /// @brief Check if the arguments can be implemented.
-    /// @param args Is the GEMM_UNIVERSAL arguments for application-related runtime variables.
+    /// @param args Is the GEMM_UNIVERSAL arguments for application-related
+    /// runtime variables.
     /// @return Check result.
     static bool can_implement(arguments_t &args) {
         bool implementable = true;
@@ -263,9 +280,12 @@ public:
     }
 
     /// @brief Main execution function for GEMM_UNIVERSAL.
-    /// The processing order is 1) set group-level base and boundary -> 2) gemm -> 3) epilogue.
-    /// @param item Is the sycl::nd_item, returns execution related information, such as workgroup id, subgroup id...
-    /// @param args Is the GEMM_UNIVERSAL arguments for application-related runtime variables.
+    /// The processing order is 1) set group-level base and boundary -> 2) gemm ->
+    /// 3) epilogue.
+    /// @param item Is the sycl::nd_item, returns execution related information,
+    /// such as workgroup id, subgroup id...
+    /// @param args Is the GEMM_UNIVERSAL arguments for application-related
+    /// runtime variables.
     /// @param slm_base Is the slm base address.
     /// @param nbarrier_base Is the named barrier base.
     __XETLA_API KERNEL_FUNC void operator()(sycl::nd_item<3> &item,
@@ -296,7 +316,7 @@ public:
         mem_desc_a_t mem_desc_a;
         mem_desc_b_t mem_desc_b;
         mem_desc_c_t mem_desc_c;
-        //setup for matA
+        // setup for matA
         if constexpr (mem_desc_a_t::is_local) {
             mem_desc_a.init(args.matA_base,
                     {wg_tile_k, real_wg_tile_m, wg_tile_k}, {0, 0});
@@ -304,7 +324,7 @@ public:
             mem_desc_a.init(args.matA_base,
                     {boundary_k, boundary_m, args.matA_ld}, {start_k, start_m});
         }
-        //setup for matB
+        // setup for matB
         if constexpr (mem_desc_b_t::is_local) {
             mem_desc_b.init(args.matB_base,
                     {real_wg_tile_n, wg_tile_k, real_wg_tile_n}, {0, 0});
@@ -312,7 +332,7 @@ public:
             mem_desc_b.init(args.matB_base,
                     {boundary_n, boundary_k, args.matB_ld}, {start_n, start_k});
         }
-        //setup for matC
+        // setup for matC
         if constexpr (mem_desc_c_t::is_local) {
             mem_desc_c.init(args.matC_base,
                     {real_wg_tile_n, real_wg_tile_m, real_wg_tile_n}, {0, 0});

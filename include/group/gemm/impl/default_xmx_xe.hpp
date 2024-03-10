@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -165,11 +165,14 @@ public:
     /// @brief Arguments for gemm.
     /// User should prepare matA_base_desc, matB_base_desc, inner_loop_count...
     struct arguments_t {
-        /// @brief Is the memory description of matA, including base, shape and coordinate.
+        /// @brief Is the memory description of matA, including base, shape and
+        /// coordinate.
         mem_desc_a_t matA_base_desc;
-        /// @brief Is the memory description of matB, including base, shape and coordinate.
+        /// @brief Is the memory description of matB, including base, shape and
+        /// coordinate.
         mem_desc_b_t matB_base_desc;
-        /// @brief Is the total inner loop count required to compute the entire K-dim.
+        /// @brief Is the total inner loop count required to compute the entire
+        /// K-dim.
         uint32_t inner_loop_count;
         /// @brief Is the arguments for pre-processing functor.
         pre_processing_arg_t pre_processing_args;
@@ -178,9 +181,12 @@ public:
         inline arguments_t() = default;
 
         /// @brief Constructs a new arguments t object.
-        /// @param matA_desc Is the memory description of matA, including base, shape and coordinate.
-        /// @param matB_desc Is the memory description of matB, including base, shape and coordinate.
-        /// @param loop_count Is the total inner loop count required to compute the entire K-dim.
+        /// @param matA_desc Is the memory description of matA, including base,
+        /// shape and coordinate.
+        /// @param matB_desc Is the memory description of matB, including base,
+        /// shape and coordinate.
+        /// @param loop_count Is the total inner loop count required to compute the
+        /// entire K-dim.
         /// @param args Is the arguments for pre-processing functor.
         inline arguments_t(mem_desc_a_t matA_desc, mem_desc_b_t matB_desc,
                 uint32_t loop_count, pre_processing_arg_t args = {})
@@ -188,9 +194,9 @@ public:
             , matB_base_desc(matB_desc)
             , inner_loop_count(loop_count)
             , pre_processing_args(args) {}
-        // Be aware of the risks: Rule of three (copy constructor, copy assignment, destructor)
-        // Please check if you need to add self-define destructor
-        // inline ~arguments_t(){}
+        // Be aware of the risks: Rule of three (copy constructor, copy assignment,
+        // destructor) Please check if you need to add self-define destructor inline
+        // ~arguments_t(){}
         inline arguments_t(const arguments_t &args)
             : matA_base_desc(args.matA_base_desc)
             , matB_base_desc(args.matB_base_desc)
@@ -205,9 +211,12 @@ public:
         }
 
         /// @brief Explicit initialization function.
-        /// @param matA_desc Is the memory description of matA, including base, shape and coordinate.
-        /// @param matB_desc Is the memory description of matB, including base, shape and coordinate.
-        /// @param loop_count Is the total inner loop count required to compute the entire K-dim.
+        /// @param matA_desc Is the memory description of matA, including base,
+        /// shape and coordinate.
+        /// @param matB_desc Is the memory description of matB, including base,
+        /// shape and coordinate.
+        /// @param loop_count Is the total inner loop count required to compute the
+        /// entire K-dim.
         /// @param args Is the arguments for pre-processing functor.
         inline void init(mem_desc_a_t matA_desc, mem_desc_b_t matB_desc,
                 uint32_t loop_count, pre_processing_arg_t args = {}) {

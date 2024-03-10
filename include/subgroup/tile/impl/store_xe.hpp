@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -81,8 +81,10 @@ struct check_store_type {
 /// payload indicates the destination of store operation.
 /// @tparam L1 Is the cache hint for L1 cache.
 /// @tparam L2 Is the cache hint for L2 cache.
-/// @param tile Is the tile object with type tile_t, contains the data to be stored.
-/// @param payload Is the payload object with type payload_t. Contains all the information for stores.
+/// @param tile Is the tile object with type tile_t, contains the data to be
+/// stored.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for stores.
 template <cache_hint L1 = cache_hint::write_back,
         cache_hint L2 = cache_hint::write_back, typename tile_t,
         typename payload_t>
@@ -254,8 +256,10 @@ tile_store(tile_t &tile, payload_t &payload) {
 /// payload indicates the destination of store operation
 /// @tparam L1 Is the cache hint for L1 cache.
 /// @tparam L2 Is the cache hint for L2 cache.
-/// @param tile Is the tile object with type tile_t, contains the data to be stored.
-/// @param payload Is the payload object with type payload_t. Contains all the information for stores.
+/// @param tile Is the tile object with type tile_t, contains the data to be
+/// stored.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for stores.
 template <cache_hint L1 = cache_hint::write_back,
         cache_hint L2 = cache_hint::write_back, typename tile_t,
         typename payload_t>
@@ -288,16 +292,19 @@ tile_store(tile_t &tile, payload_t &payload) {
             tile, payload, tail_offset);
 }
 
-/// @brief Is the func storing data from register file to unaligned global memory surface.
-/// store a rectangular region (X,Y)..(X+W,Y+H) into memory from registers.
+/// @brief Is the func storing data from register file to unaligned global
+/// memory surface. store a rectangular region (X,Y)..(X+W,Y+H) into memory from
+/// registers.
 /// @tparam tile_t Is the tile_t struct contains registers
 /// These registers will be the source of store operation.
 /// @tparam payload_t Is the mem_payload_t struct describing the memory info
 /// payload indicates the destination of store operation.
 /// @tparam L1 Is the cache hint for L1 cache.
 /// @tparam L3 Is the cache hint for L3 cache.
-/// @param tile Is the tile object with type tile_t, contains the data to be stored.
-/// @param payload Is the payload object with type payload_t. Contains all the information for stores.
+/// @param tile Is the tile object with type tile_t, contains the data to be
+/// stored.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for stores.
 /// @return No return, update in place.
 template <cache_hint L1 = cache_hint::write_back,
         cache_hint L3 = cache_hint::write_back, typename tile_t,
@@ -392,16 +399,19 @@ tile_store(tile_t &tile, payload_t &payload,
     }
 }
 
-/// @brief Is the func storing data from register file to unaligned global memory surface.
-/// store a rectangular region (X,Y)..(X+W,Y+H) into memory from registers.
+/// @brief Is the func storing data from register file to unaligned global
+/// memory surface. store a rectangular region (X,Y)..(X+W,Y+H) into memory from
+/// registers.
 /// @tparam tile_t Is the tile_t struct contains registers
 /// These registers will be the source of store operation.
 /// @tparam payload_t Is the mem_payload_t struct describing the memory info
 /// payload indicates the destination of store operation.
 /// @tparam L1 Is the cache hint for L1 cache.
 /// @tparam L3 Is the cache hint for L3 cache.
-/// @param tile Is the tile object with type tile_t, contains the data to be stored.
-/// @param payload Is the payload object with type payload_t. Contains all the information for stores.
+/// @param tile Is the tile object with type tile_t, contains the data to be
+/// stored.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for stores.
 /// @return No return, update in place.
 template <cache_hint L1 = cache_hint::write_back,
         cache_hint L3 = cache_hint::write_back, typename tile_t,
@@ -461,7 +471,6 @@ tile_store(tile_t &tile, payload_t &payload) {
                                 > payload.height_in_elems
                         && payload.base_y + offset_y + sub_block_y
                                 < payload.height_in_elems) {
-
                     xetla_vector<uint32_t, num_channel> channel_index
                             = xetla_vector_gen<uint32_t, num_channel>(0, 1);
 
@@ -476,7 +485,6 @@ tile_store(tile_t &tile, payload_t &payload) {
                             reg_tmp, pred_y);
                 } else if (payload.base_y + offset_y + sub_block_y + num_channel
                         <= payload.height_in_elems) {
-
                     xetla_store_global<store_dtype, payload_t::simd_exec_size,
                             data_size::default_size, L1, L3, num_channel>(
                             payload.base_ptr,
@@ -492,16 +500,18 @@ tile_store(tile_t &tile, payload_t &payload) {
 }
 
 /// @brief Is the func storing data from register file to global memory
-/// enable atomic adding data into the same buffer, but support float32, float64, uint32_t,
-/// uint64_t and int type
+/// enable atomic adding data into the same buffer, but support float32,
+/// float64, uint32_t, uint64_t and int type
 /// @tparam tile_t Is the tile_t struct contains registers
 /// These registers will be the source of store operation.
 /// @tparam payload_t Is the mem_payload_t struct describing the memory info
 /// payload indicates the destination of store operation
 /// @tparam L1 Is the cache hint for L1 cache.
 /// @tparam L2 Is the cache hint for L2 cache.
-/// @param tile Is the tile object with type tile_t, contains the data to be stored.
-/// @param payload Is the payload object with type payload_t. Contains all the information for stores.
+/// @param tile Is the tile object with type tile_t, contains the data to be
+/// stored.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for stores.
 template <cache_hint L1 = cache_hint::uncached,
         cache_hint L2 = cache_hint::write_back, typename tile_t,
         typename payload_t,
@@ -618,8 +628,10 @@ tile_store(tile_t &tile, payload_t &payload,
 /// payload indicates the destination of store operation
 /// @tparam L1 Is the cache hint for L1 cache.
 /// @tparam L2 Is the cache hint for L2 cache.
-/// @param tile Is the tile object with type tile_t, contains the data to be stored.
-/// @param payload Is the payload object with type payload_t. Contains all the information for stores.
+/// @param tile Is the tile object with type tile_t, contains the data to be
+/// stored.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for stores.
 template <cache_hint L1 = cache_hint::write_back,
         cache_hint L2 = cache_hint::write_back, typename tile_t,
         typename payload_t>
@@ -681,16 +693,18 @@ tile_store(tile_t &tile, payload_t &payload) {
 }
 
 /// @brief Is the data store func from register file to local shared memory,
-/// where the data in register is vnni packed and col major. And we always assume
-/// the dst memory layout is row major.
+/// where the data in register is vnni packed and col major. And we always
+/// assume the dst memory layout is row major.
 /// @tparam tile_t Is the tile_t struct contains registers
 /// These registers will be the source of store operation.
 /// @tparam payload_t Is the mem_payload_t struct describing the memory info
 /// payload indicates the destination of store operation
 /// @tparam L1 Is the cache hint for L1 cache.
 /// @tparam L2 Is the cache hint for L2 cache.
-/// @param tile Is the tile object with type tile_t, contains the data to be stored.
-/// @param payload Is the payload object with type payload_t. Contains all the information for stores.
+/// @param tile Is the tile object with type tile_t, contains the data to be
+/// stored.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for stores.
 template <cache_hint L1 = cache_hint::write_back,
         cache_hint L2 = cache_hint::write_back, typename tile_t,
         typename payload_t>
@@ -757,16 +771,18 @@ tile_store(tile_t &tile, payload_t &payload) {
 }
 
 /// @brief Is the data store func from register file to shared local memory,
-/// where supports memory surface 1d or 2d scenario, and we always assume dst memory
-/// layout is row major.
+/// where supports memory surface 1d or 2d scenario, and we always assume dst
+/// memory layout is row major.
 /// @tparam tile_t Is the tile_t struct contains registers
 /// These registers will be the source of store operation.
 /// @tparam payload_t Is the mem_payload_t struct describing the memory info
 /// payload indicates the destination of store operation
 /// @tparam L1 Is the cache hint for L1 cache.
 /// @tparam L2 Is the cache hint for L2 cache.
-/// @param tile Is the tile object with type tile_t, contains the data to be stored.
-/// @param payload Is the payload object with type payload_t. Contains all the information for stores.
+/// @param tile Is the tile object with type tile_t, contains the data to be
+/// stored.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for stores.
 template <cache_hint L1 = cache_hint::write_back,
         cache_hint L2 = cache_hint::write_back, typename tile_t,
         typename payload_t>
@@ -831,16 +847,18 @@ tile_store(tile_t &tile, payload_t &payload) {
 }
 
 /// @brief Is the func storing data from register file to shared local memory,
-/// the data in registers will be stored to SLM in 1d mode, and we always assume dst memory
-/// layout is row major.
+/// the data in registers will be stored to SLM in 1d mode, and we always assume
+/// dst memory layout is row major.
 /// @tparam tile_t Is the tile_t struct contains registers
 /// These registers will be the source of store operation.
 /// @tparam payload_t Is the mem_payload_t struct describing the memory info
 /// payload indicates the destination of store operation
 /// @tparam L1 Is the cache hint for L1 cache.
 /// @tparam L2 Is the cache hint for L2 cache.
-/// @param tile Is the tile object with type tile_t, contains the data to be stored.
-/// @param payload Is the payload object with type payload_t. Contains all the information for stores.
+/// @param tile Is the tile object with type tile_t, contains the data to be
+/// stored.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for stores.
 template <cache_hint L1 = cache_hint::write_back,
         cache_hint L2 = cache_hint::write_back, typename tile_t,
         typename payload_t>

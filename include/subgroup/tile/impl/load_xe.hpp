@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -58,16 +58,18 @@ struct check_load_type {
 } // namespace detail
 
 /// @brief This function loads data from 2D memory surface.
-/// Loads an array of rectangular regions (X,Y)..(X+W,Y+H) from memory into registers.
-/// Each block will be loaded serially by its corresponding payload.
+/// Loads an array of rectangular regions (X,Y)..(X+W,Y+H) from memory into
+/// registers. Each block will be loaded serially by its corresponding payload.
 /// @tparam tile_t Is the tile_t struct contains registers.
 /// These registers will be the destination of load operation.
-/// @tparam payload_t Is the mem_payload_t struct describing the memory information
-/// Payload indicates the source of load operation.
+/// @tparam payload_t Is the mem_payload_t struct describing the memory
+/// information Payload indicates the source of load operation.
 /// @tparam L1 Is the cache hint for L1 cache.
 /// @tparam L2 Is the cache hint for L2 cache.
-/// @param tile Is the tile object with type tile_t, holds the return data of the loads.
-/// @param payload Is the payload object with type payload_t. Contains all the information for loads.
+/// @param tile Is the tile object with type tile_t, holds the return data of
+/// the loads.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for loads.
 /// @return No return, update in place.
 template <cache_hint L1 = cache_hint::cached,
         cache_hint L2 = cache_hint::cached, typename tile_t, typename payload_t>
@@ -359,12 +361,14 @@ tile_load(tile_t &tile, payload_t &payload) {
 /// For each enabled SIMT lane, a vector is read from memory into registers.
 /// @tparam tile_t Is the tile_t struct contains registers.
 /// These registers will be the destination of load operation.
-/// @tparam payload_t Is the mem_payload_t struct describing the memory information.
-/// Payload indicates the source of load operation.
+/// @tparam payload_t Is the mem_payload_t struct describing the memory
+/// information. Payload indicates the source of load operation.
 /// @tparam L1 Is the cache hint for L1 cache.
 /// @tparam L2 Is the cache hint for L2 cache.
-/// @param tile Is the tile object with type tile_t, holds the return data of the loads.
-/// @param payload Is the payload object with type payload_t. Contains all the information for loads.
+/// @param tile Is the tile object with type tile_t, holds the return data of
+/// the loads.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for loads.
 /// @return No return, update in place.
 template <cache_hint L1 = cache_hint::cached,
         cache_hint L2 = cache_hint::cached, typename tile_t, typename payload_t>
@@ -397,16 +401,18 @@ tile_load(tile_t &tile, payload_t &payload) {
 }
 
 /// @brief This function loads data from unaligned-2D memory surface.
-/// Loads an array of rectangular regions (X,Y)..(X+W,Y+H) from memory into registers.
-/// Each block will be loaded serially by its corresponding payload.
+/// Loads an array of rectangular regions (X,Y)..(X+W,Y+H) from memory into
+/// registers. Each block will be loaded serially by its corresponding payload.
 /// @tparam tile_t Is the tile_t struct contains registers.
 /// These registers will be the destination of load operation.
-/// @tparam payload_t Is the mem_payload_t struct describing the memory information.
-/// Payload indicates the source of load operation.
+/// @tparam payload_t Is the mem_payload_t struct describing the memory
+/// information. Payload indicates the source of load operation.
 /// @tparam L1 Is the cache hint for L1 cache.
 /// @tparam L3 Is the cache hint for L3 cache.
-/// @param tile Is the tile object with type tile_t, holds the return data of the loads.
-/// @param payload Is the payload object with type payload_t. Contains all the information for loads.
+/// @param tile Is the tile object with type tile_t, holds the return data of
+/// the loads.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for loads.
 /// @return No return, update in place.
 template <cache_hint L1 = cache_hint::cached,
         cache_hint L3 = cache_hint::cached, typename tile_t, typename payload_t>
@@ -491,16 +497,18 @@ tile_load(tile_t &tile, payload_t &payload) {
 }
 
 /// @brief This function loads data from unaligned-2D memory surface.
-/// Loads an array of rectangular regions (X,Y)..(X+W,Y+H) from memory into registers.
-/// Each block will be loaded serially by its corresponding payload.
+/// Loads an array of rectangular regions (X,Y)..(X+W,Y+H) from memory into
+/// registers. Each block will be loaded serially by its corresponding payload.
 /// @tparam tile_t Is the tile_t struct contains registers.
 /// These registers will be the destination of load operation.
-/// @tparam payload_t Is the mem_payload_t struct describing the memory information.
-/// Payload indicates the source of load operation.
+/// @tparam payload_t Is the mem_payload_t struct describing the memory
+/// information. Payload indicates the source of load operation.
 /// @tparam L1 Is the cache hint for L1 cache.
 /// @tparam L3 Is the cache hint for L3 cache.
-/// @param tile Is the tile object with type tile_t, holds the return data of the loads.
-/// @param payload Is the payload object with type payload_t. Contains all the information for loads.
+/// @param tile Is the tile object with type tile_t, holds the return data of
+/// the loads.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for loads.
 /// @return No return, update in place.
 template <cache_hint L1 = cache_hint::cached,
         cache_hint L3 = cache_hint::cached, typename tile_t, typename payload_t,
@@ -564,7 +572,7 @@ tile_load(tile_t &tile, payload_t &payload,
             }
         }
     }
-    //process the tail
+    // process the tail
     if constexpr ((tile_desc::tile_size_y % tile_desc::block_size_y) != 0) {
         constexpr uint32_t remained_size_y = tile_desc::remained_size_y;
         constexpr uint32_t offset_y = tile_desc::tile_size_y - remained_size_y;
@@ -620,17 +628,19 @@ tile_load(tile_t &tile, payload_t &payload,
     }
 }
 
-/// @brief Is the data load func from local shared memory to register file, which
-/// supports the memory surface is 1d or 2d scenario. And we always assume data in SLM
-/// is row major.
+/// @brief Is the data load func from local shared memory to register file,
+/// which supports the memory surface is 1d or 2d scenario. And we always assume
+/// data in SLM is row major.
 /// @tparam tile_t Is the tile_t struct contains registers
 /// These registers will be the destination of load operation.
-/// @tparam payload_t Is the mem_payload_t struct describing the memory information.
-/// Payload indicates the source of load operation.
+/// @tparam payload_t Is the mem_payload_t struct describing the memory
+/// information. Payload indicates the source of load operation.
 /// @tparam L1 Is the cache hint for L1 cache.
 /// @tparam L2 Is the cache hint for L2 cache.
-/// @param tile Is the tile object with type tile_t, holds the return data of the loads.
-/// @param payload Is the payload object with type payload_t. Contains all the information for loads.
+/// @param tile Is the tile object with type tile_t, holds the return data of
+/// the loads.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for loads.
 /// @return No return, update in place.
 template <cache_hint L1 = cache_hint::cached,
         cache_hint L2 = cache_hint::cached, typename tile_t, typename payload_t>
@@ -668,7 +678,7 @@ tile_load(tile_t &tile, payload_t &payload) {
             }
         }
     }
-    //process the tail
+    // process the tail
     if constexpr ((tile_desc::tile_size_y % tile_desc::block_size_y) != 0) {
         constexpr uint32_t remained_size_y = tile_desc::remained_size_y;
         constexpr uint32_t offset_y = tile_desc::tile_size_y - remained_size_y;
@@ -699,17 +709,19 @@ tile_load(tile_t &tile, payload_t &payload) {
     }
 }
 
-/// @brief Is the data load func from shared local memory to register file, which
-/// supports the memory surface is 1d scenario. And the src memory layout is always
-/// row major.
+/// @brief Is the data load func from shared local memory to register file,
+/// which supports the memory surface is 1d scenario. And the src memory layout
+/// is always row major.
 /// @tparam tile_t Is the tile_t struct contains registers.
 /// These registers will be the destination of load operation.
-/// @tparam payload_t Is the mem_payload_t struct describing the memory information.
-/// Payload indicates the source of load operation.
+/// @tparam payload_t Is the mem_payload_t struct describing the memory
+/// information. Payload indicates the source of load operation.
 /// @tparam L1 Is the cache hint for L1 cache.
 /// @tparam L2 Is the cache hint for L2 cache.
-/// @param tile Is the tile object with type tile_t, holds the return data of the loads.
-/// @param payload Is the payload object with type payload_t. Contains all the information for loads.
+/// @param tile Is the tile object with type tile_t, holds the return data of
+/// the loads.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for loads.
 /// @return No return, update in place.
 template <cache_hint L1 = cache_hint::cached,
         cache_hint L2 = cache_hint::cached, typename tile_t, typename payload_t>

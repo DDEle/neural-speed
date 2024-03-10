@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -28,7 +28,8 @@ namespace gpu::xetla::group {
 /// @addtogroup xetla_epilogue
 /// @{
 
-/// @brief Is the epilogue functor specialized for epilogue_policy_tile_op and Xe architecture.
+/// @brief Is the epilogue functor specialized for epilogue_policy_tile_op and
+/// Xe architecture.
 template <typename tile_op_t_, typename tile_shape_, typename mem_desc_c_t_,
         gpu_arch arch_tag_>
 class epilogue_t<epilogue_policy_tile_op<tile_op_t_, arch_tag_>, tile_shape_,
@@ -58,9 +59,9 @@ public:
         /// tile_op argument or chained_tile_op_args.
         inline arguments_t(typename tile_op_t::arguments_t tile_op_args_)
             : tile_op_args(tile_op_args_) {}
-        // Be aware of the risks: Rule of three (copy constructor, copy assignment, destructor)
-        // Please check if you need to add self-define destructor
-        // inline ~arguments_t(){}
+        // Be aware of the risks: Rule of three (copy constructor, copy assignment,
+        // destructor) Please check if you need to add self-define destructor inline
+        // ~arguments_t(){}
         inline arguments_t(const arguments_t &args)
             : tile_op_args(args.tile_op_args) {}
 
@@ -108,7 +109,8 @@ public:
     /// @tparam matAcc_t Is the type of the input tile.
     /// @param g Is the workgroup of the current tile.
     /// @param matAcc Is the input tile.
-    /// @param mem_desc_c Is the memory description of matC, including base, shape and coordinate.
+    /// @param mem_desc_c Is the memory description of matC, including base, shape
+    /// and coordinate.
     /// @param args Is the additional arguments for epilogue.
     /// @param slm_base Is the slm base address.
     /// @param nbarrier_base Is the named barrier base.

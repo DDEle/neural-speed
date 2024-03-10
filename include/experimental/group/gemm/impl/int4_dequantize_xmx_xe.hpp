@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -235,15 +235,20 @@ public:
     /// @brief Arguments for gemm.
     /// User should prepare matA_base_desc, matB_base_desc, inner_loop_count...
     struct arguments_t {
-        /// @brief Is the memory description of matA, including base, shape and coordinate.
+        /// @brief Is the memory description of matA, including base, shape and
+        /// coordinate.
         mem_desc_a_t matA_base_desc;
-        /// @brief Is the memory description of matB, including base, shape and coordinate.
+        /// @brief Is the memory description of matB, including base, shape and
+        /// coordinate.
         mem_desc_b_t matB_base_desc;
-        /// @brief Is the total inner loop count required to compute the entire K-dim.
+        /// @brief Is the total inner loop count required to compute the entire
+        /// K-dim.
         uint32_t inner_loop_count;
-        /// @brief Is the memory description of scale buffer. Scale size: (matrix_k/dequant_s)x(matrix_n)
+        /// @brief Is the memory description of scale buffer. Scale size:
+        /// (matrix_k/dequant_s)x(matrix_n)
         mem_desc_scale_t scale_base_desc;
-        /// @brief Is the memory description of zero_pt buffer. Zero_pt size: (matrix_k/dequant_s)x(matrix_n/pack_ratio)
+        /// @brief Is the memory description of zero_pt buffer. Zero_pt size:
+        /// (matrix_k/dequant_s)x(matrix_n/pack_ratio)
         mem_desc_zero_pt_t zero_pt_base_desc;
 
         /// @brief Default construct.
@@ -264,9 +269,9 @@ public:
             , matB_base_desc(matB_desc)
             , inner_loop_count(loop_count)
             , scale_base_desc(scale_desc) {}
-        // Be aware of the risks: Rule of three (copy constructor, copy assignment, destructor)
-        // Please check if you need to add self-define destructor
-        // inline ~arguments_t(){}
+        // Be aware of the risks: Rule of three (copy constructor, copy assignment,
+        // destructor) Please check if you need to add self-define destructor inline
+        // ~arguments_t(){}
         inline arguments_t(const arguments_t &args)
             : matA_base_desc(args.matA_base_desc)
             , matB_base_desc(args.matB_base_desc)
@@ -505,7 +510,7 @@ public:
 private:
     inline void dequantize(matB_acc_t &matB_acc, matB_t &matB, scale_t &scale,
             zero_pt_t &zero_pt) {
-        //no tail, because this is matB
+        // no tail, because this is matB
         constexpr uint32_t num_block_x = tile_size_x_b / block_size_x_b;
         constexpr uint32_t num_block_y = tile_size_y_b / block_size_y_b;
 
@@ -528,7 +533,7 @@ private:
                         = matB_acc.reg.xetla_select<matB_acc_t::block_elems, 1>(
                                 block_id * matB_acc_t::block_elems);
 
-                //2: int8 includes 2 4bits data.
+                // 2: int8 includes 2 4bits data.
                 xetla_vector<uint8_t, block_size_x_b * block_size_y_b> cvt_blk;
                 cvt_blk.xetla_select<matB_t::block_elems, 2>(0)
                         = matB_blk & 0x0f;

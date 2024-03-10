@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -262,7 +262,8 @@ private:
             = max_load_width_in_bytes / sizeof(dtype);
 
 public:
-    // block_size_x should be power of 2 and tile_size_x should be divided by block_size_x
+    // block_size_x should be power of 2 and tile_size_x should be divided by
+    // block_size_x
     static constexpr uint32_t block_size_x
             = detail::gcd<tile_size_x, max_load_width_in_elem>::value;
     static constexpr uint32_t block_size_y
@@ -289,7 +290,8 @@ private:
             = max_store_width_in_bytes / sizeof(dtype);
 
 public:
-    // block_size_x should be power of 2 and tile_size_x should be divided by block_size_x
+    // block_size_x should be power of 2 and tile_size_x should be divided by
+    // block_size_x
     static constexpr uint32_t block_size_x
             = detail::gcd<tile_size_x, max_store_width_in_elem>::value;
     static constexpr uint32_t block_size_y

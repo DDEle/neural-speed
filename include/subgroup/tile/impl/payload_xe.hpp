@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -123,8 +123,8 @@ public:
     }
 
     inline mem_payload_t() = default;
-    // Be aware of the risks: Rule of three (copy constructor, copy assignment, destructor)
-    // Please check if you need to add self-define destructor
+    // Be aware of the risks: Rule of three (copy constructor, copy assignment,
+    // destructor) Please check if you need to add self-define destructor
     // ~mem_payload_t(){}
 
     inline this_payload_t &operator=(const this_payload_t &rhs) {
@@ -472,8 +472,10 @@ public:
     }
 };
 
-/// @brief Is to describe the shared local memory surface for block-1d load/store
-/// 1. data located in shared local memory 2. tile will be loaded / stored in 1d mode.
+/// @brief Is to describe the shared local memory surface for block-1d
+/// load/store
+/// 1. data located in shared local memory 2. tile will be loaded / stored in 1d
+/// mode.
 /// @tparam dtype Is the data type
 /// @tparam tile_desc_ Is the tile descriptor
 /// @tparam mem_layout_ Is the memory layout
@@ -984,7 +986,8 @@ public:
 };
 
 /// @brief Is to describe the shared local memory surface for scatter load/store
-/// 1. data located in shared local memory 2. tile will be loaded / stored in scatter mode
+/// 1. data located in shared local memory 2. tile will be loaded / stored in
+/// scatter mode
 /// @tparam dtype Is the data type
 /// @tparam tile_desc_ Is the tile descriptor
 /// @tparam mem_layout_ Is the memory layout
@@ -1134,7 +1137,8 @@ public:
 };
 
 /// @brief Is to describe the shared local memory surface for scattering store
-/// 1. data located in shared local memory 2. tile will be stored in scatter mode
+/// 1. data located in shared local memory 2. tile will be stored in scatter
+/// mode
 /// 3. data in register file is vnni packed and col majored.
 /// @tparam dtype Is the data type
 /// @tparam tile_desc_ Is the tile descriptor
@@ -1201,8 +1205,8 @@ public:
     uint32_t wg_width_in_bytes;
     uint32_t wg_height_in_elems;
 
-    // Be aware of the risks: Rule of three (copy constructor, copy assignment, destructor)
-    // Please check if you need to add self-define destructor
+    // Be aware of the risks: Rule of three (copy constructor, copy assignment,
+    // destructor) Please check if you need to add self-define destructor
     // ~mem_payload_t(){}
     inline mem_payload_t(mem_desc_t mem_tdesc) {
         xetla_tdescriptor base_tdesc = mem_tdesc.get_tdesc();
@@ -1384,7 +1388,7 @@ public:
                                                        : normal_prefetch_width);
     static constexpr uint32_t block_size_h
             = load_store_attr::max_load_height_in_elem;
-    //could have over-prefetch, but that's should be fine
+    // could have over-prefetch, but that's should be fine
     static constexpr uint32_t max_num_block_w
             = (mem_tile_size_w + block_size_w - 1) / block_size_w;
     static constexpr uint32_t num_coop_sg = num_coop_sg_;
@@ -1480,8 +1484,8 @@ public:
                 = xetla_vector_gen<uint32_t, num_channel>(0, 1);
         channel_offset = channel_index * pitch_in_bytes;
     }
-    // Be aware of the risks: Rule of three (copy constructor, copy assignment, destructor)
-    // Please check if you need to add self-define destructor
+    // Be aware of the risks: Rule of three (copy constructor, copy assignment,
+    // destructor) Please check if you need to add self-define destructor
     // ~prefetch_payload_t(){}
 
     template <tdesc_update_dir update_dir = tdesc_update_dir::x_dir>
@@ -1511,7 +1515,8 @@ struct prefetch_payload_t<
         tile_desc_t<tile_size_x_, tile_size_y_, block_size_x_, block_size_y_,
                 reg_layout_>,
         num_coop_sg_, arch_tag_,
-        std::enable_if_t<(arch_tag_ == gpu_arch::Xe)>> {
+        std::enable_if_t<(arch_tag_ == gpu_arch::Xe)
+                && (tile_size_y_ != 1 || block_size_y_ != 1)>> {
     using dtype = dtype_;
     using mem_desc_t
             = mem_desc_t<dtype_, mem_layout_, mem_space::global, alignment_>;
@@ -1546,7 +1551,7 @@ private:
                                                        : normal_prefetch_width);
     static constexpr uint32_t block_size_h
             = load_store_attr::max_load_height_in_elem;
-    //could have over-prefetch, but that's should be fine
+    // could have over-prefetch, but that's should be fine
     static constexpr uint32_t max_num_block_w
             = (mem_tile_size_w + block_size_w - 1) / block_size_w;
     static constexpr uint32_t num_coop_sg = num_coop_sg_;
@@ -1601,8 +1606,8 @@ public:
                 surface_offset_y + coop_id_y * tile_size_h);
         prepare_tdesc(base_tdesc);
     }
-    // Be aware of the risks: Rule of three (copy constructor, copy assignment, destructor)
-    // Please check if you need to add self-define destructor
+    // Be aware of the risks: Rule of three (copy constructor, copy assignment,
+    // destructor) Please check if you need to add self-define destructor
     // ~prefetch_payload_t(){}
 
     template <tdesc_update_dir update_dir = tdesc_update_dir::x_dir>
