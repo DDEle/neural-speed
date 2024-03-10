@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -27,12 +27,14 @@
 namespace gpu::xetla::kernel {
 
 /// @brief Is the data_transformer functor for Xe
-/// Each time, each thread will load sg_tile_m x sg_tile_n data into register and do the data convert.
+/// Each time, each thread will load sg_tile_m x sg_tile_n data into register
+/// and do the data convert.
 ///
 /// @tparam dtype_in_ Is the data type of input.
 /// @tparam dtype_out_ Is the data type of output.
 /// @tparam dtype_compute_ Is the data type of calculation.
-/// @tparam data_transformer_attr_ Is the tile size for each group to do the data convert.
+/// @tparam data_transformer_attr_ Is the tile size for each group to do the
+/// data convert.
 /// @tparam mem_layout_in_ Indicates the input data col major or row major.
 /// @tparam need_fp8_op Indicates whether fp8-related operations are required.
 template <typename dtype_in_, typename dtype_out_, typename dtype_compute_,
@@ -78,7 +80,8 @@ struct xetla_data_transformer<dtype_in_, dtype_out_, dtype_compute_,
     static constexpr uint32_t max_store_width_in_elem
             = max_store_width_in_bytes / sizeof(dtype_out);
 
-    /// block_size_x should be power of 2 and tile_size_x should be divided by block_size_x
+    /// block_size_x should be power of 2 and tile_size_x should be divided by
+    /// block_size_x
     static constexpr uint32_t load_size_x
             = gpu::xetla::subgroup::detail::gcd<tile_size_x,
                     max_load_width_in_elem>::value;
@@ -129,8 +132,9 @@ struct xetla_data_transformer<dtype_in_, dtype_out_, dtype_compute_,
                     reduce_op::max, wg_size_x * wg_size_y, true, gpu_arch::Xe>;
 
     /// @brief Arguments for gemm::run.
-    /// User should prepare mat_in_ptr, mat_out_ptr, matrix_m, matrix_n, matrix_in_ld,
-    /// matrix_out_ld, wg_ld_start_x, wg_ld_start_y, wg_st_start_x, wg_st_start_y.
+    /// User should prepare mat_in_ptr, mat_out_ptr, matrix_m, matrix_n,
+    /// matrix_in_ld, matrix_out_ld, wg_ld_start_x, wg_ld_start_y, wg_st_start_x,
+    /// wg_st_start_y.
     ///
     struct arguments_t {
         dtype_in *mat_in_ptr;
@@ -178,7 +182,7 @@ struct xetla_data_transformer<dtype_in_, dtype_out_, dtype_compute_,
         global_st_payload_t global_st_payload;
         global_compute_t mat_global_compute;
 
-        //input and output starting point
+        // input and output starting point
         int global_ld_start_x;
         int global_ld_start_y;
 

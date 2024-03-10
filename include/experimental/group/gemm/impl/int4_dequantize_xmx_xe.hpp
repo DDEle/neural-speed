@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -232,15 +232,20 @@ public:
     /// @brief Arguments for gemm.
     /// User should prepare matA_base_desc, matB_base_desc, inner_loop_count...
     struct arguments_t {
-        /// @brief Is the memory description of matA, including base, shape and coordinate.
+        /// @brief Is the memory description of matA, including base, shape and
+        /// coordinate.
         mem_desc_a_t matA_base_desc;
-        /// @brief Is the memory description of matB, including base, shape and coordinate.
+        /// @brief Is the memory description of matB, including base, shape and
+        /// coordinate.
         mem_desc_b_t matB_base_desc;
-        /// @brief Is the total inner loop count required to compute the entire K-dim.
+        /// @brief Is the total inner loop count required to compute the entire
+        /// K-dim.
         uint32_t inner_loop_count;
-        /// @brief Is the memory description of scale buffer. Scale size: (matrix_k/dequant_s)x(matrix_n)
+        /// @brief Is the memory description of scale buffer. Scale size:
+        /// (matrix_k/dequant_s)x(matrix_n)
         mem_desc_scale_t scale_base_desc;
-        /// @brief Is the memory description of zero_pt buffer. Zero_pt size: (matrix_k/dequant_s)x(matrix_n/pack_ratio)
+        /// @brief Is the memory description of zero_pt buffer. Zero_pt size:
+        /// (matrix_k/dequant_s)x(matrix_n/pack_ratio)
         mem_desc_zero_pt_t zero_pt_base_desc;
 
         /// @brief Default construct.
@@ -261,9 +266,9 @@ public:
             , matB_base_desc(matB_desc)
             , inner_loop_count(loop_count)
             , scale_base_desc(scale_desc) {}
-        // Be aware of the risks: Rule of three (copy constructor, copy assignment, destructor)
-        // Please check if you need to add self-define destructor
-        // inline ~arguments_t(){}
+        // Be aware of the risks: Rule of three (copy constructor, copy assignment,
+        // destructor) Please check if you need to add self-define destructor inline
+        // ~arguments_t(){}
         inline arguments_t(const arguments_t &args)
             : matA_base_desc(args.matA_base_desc)
             , matB_base_desc(args.matB_base_desc)
@@ -531,7 +536,7 @@ private:
     }
     inline void dequantize(matB_acc_t &matB_acc, matB_t &matB, scale_t &scale,
             zero_pt_t &zero_pt) {
-        //no tail, because this is matB
+        // no tail, because this is matB
         constexpr uint32_t num_block_x = tile_size_x_b / block_size_x_b;
         constexpr uint32_t num_block_y = tile_size_y_b / block_size_y_b;
         // constexpr uint32_t vnni_rows = sizeof(uint32_t) / sizeof(dtype_mma_b);
@@ -540,7 +545,8 @@ private:
         for (uint32_t i = 0; i < num_block_y; ++i) {
 #pragma unroll
             for (uint32_t j = 0; j < num_block_x; ++j) {
-                //     sycl::ext::oneapi::experimental::printf("dequantloop i: %d j: %d \n",i,j);
+                //     sycl::ext::oneapi::experimental::printf("dequantloop i: %d j: %d
+                //     \n",i,j);
                 int block_id = (i * num_block_x + j);
                 auto matB_blk = matB.reg.xetla_select<matB_t::block_elems, 1>(
                                                 block_id * matB_t::block_elems)
@@ -555,7 +561,7 @@ private:
                         = matB_acc.reg.xetla_select<matB_acc_t::block_elems, 1>(
                                 block_id * matB_acc_t::block_elems);
 
-                //2: int8 includes 2 4bits data.
+                // 2: int8 includes 2 4bits data.
                 xetla_vector<uint8_t, block_size_x_b * block_size_y_b> cvt_blk;
                 cvt_blk.xetla_select<matB_t::block_elems, 2>(0)
                         = matB_blk & 0x0f;
@@ -592,7 +598,7 @@ private:
                 }
                 if constexpr (compute_policy::quant_type
                         == quant_mode::S4_FULLRANGE_NO_ZP) {
-                    xetla_vector<int8_t, block_size_x_b * block_size_y_b>
+                    xetla_vector<int8_t, block_size_x_b *block_size_y_b>
                             cvt_blk_i8
                             = (cvt_blk.xetla_format<int8_t>()) - int8_t(8);
                     cvt_blk_i32 = (cvt_blk_i8.xetla_format<int8_t>());
@@ -612,30 +618,40 @@ private:
                 //         = cvt_blk_i32;
 
                 // #pragma unroll
-                //                 for (uint32_t k = 0; k < block_size_y_b; k += vnni_rows) {
+                //                 for (uint32_t k = 0; k < block_size_y_b; k +=
+                //                 vnni_rows) {
                 // #pragma unroll
                 //                     for (uint32_t row = 0; row < vnni_rows; row++) {
-                //                         temp_blk.xetla_select<block_size_x_b, vnni_rows>(
+                //                         temp_blk.xetla_select<block_size_x_b,
+                //                         vnni_rows>(
                 //                                 row + block_size_x_b * k * vnni_rows)
-                //                                 = temp_blk.xetla_select<block_size_x_b,
+                //                                 =
+                //                                 temp_blk.xetla_select<block_size_x_b,
                 //                                         vnni_rows>(
-                //                                         (k + row) * block_size_x_b * vnni_rows);
+                //                                         (k + row) * block_size_x_b *
+                //                                         vnni_rows);
                 //                     }
                 //                 }
 
-                //                 xetla_vector<dtype_scale, block_size_x_b * vnni_rows> scale_blk;
+                //                 xetla_vector<dtype_scale, block_size_x_b * vnni_rows>
+                //                 scale_blk;
                 // #pragma unroll
                 //                 for (uint32_t row = 0; row < vnni_rows; row++) {
-                //                     scale_blk.xetla_select<block_size_x_b, vnni_rows>(row)
+                //                     scale_blk.xetla_select<block_size_x_b,
+                //                     vnni_rows>(row)
                 //                             = scale_vec;
                 //                 }
 
                 // #pragma unroll
-                //                 for (uint32_t k = 0; k < block_size_y_b; k += vnni_rows) {
-                //                     dst_blk.xetla_select<block_size_x_b * vnni_rows, 1>(
+                //                 for (uint32_t k = 0; k < block_size_y_b; k +=
+                //                 vnni_rows) {
+                //                     dst_blk.xetla_select<block_size_x_b * vnni_rows,
+                //                     1>(
                 //                             k * block_size_x_b)
-                //                             = temp_blk.xetla_select<block_size_x_b * vnni_rows,
-                //                                       1>(k * block_size_x_b * vnni_rows)
+                //                             = temp_blk.xetla_select<block_size_x_b *
+                //                             vnni_rows,
+                //                                       1>(k * block_size_x_b *
+                //                                       vnni_rows)
                 //                             * scale_blk;
                 //                 }
             }

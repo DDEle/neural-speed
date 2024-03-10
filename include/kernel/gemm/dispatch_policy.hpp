@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -46,8 +46,10 @@ public:
 };
 
 /// @brief GROUP_SWIZZLE implementation of snake curve.
-/// A GROUP_SWIZZLE implementation to remap linear workgroup id to a 2d coordination in snake order.
-/// @tparam wg_num_n_ Is the number of workgroup in horizontal direction, given by users.
+/// A GROUP_SWIZZLE implementation to remap linear workgroup id to a 2d
+/// coordination in snake order.
+/// @tparam wg_num_n_ Is the number of workgroup in horizontal direction, given
+/// by users.
 /// @tparam arch_tag_ Is the HW architecture.
 template <int wg_num_n_, gpu_arch arch_tag_>
 struct group_swizzle_snake {
@@ -110,7 +112,8 @@ private:
 };
 
 /// @brief Default GEMM_UNIVERSAL implementation.
-/// A general GEMM_UNIVERSAL implementation to provide a composition point of gemm_universal and epilogue.
+/// A general GEMM_UNIVERSAL implementation to provide a composition point of
+/// gemm_universal and epilogue.
 /// @tparam arch_tag_ Is the HW architecture.
 template <typename group_swizzle_policy_>
 struct dispatch_policy_default {
@@ -119,8 +122,10 @@ struct dispatch_policy_default {
 };
 
 /// @brief Kslicing GEMM_UNIVERSAL implementation.
-/// A special GEMM_UNIVERSAL implementation to increase the hardware occupancy by splitting the GEMM_UNIVERSAL task along k dimension.
-/// It includes inter-group reduction (by using global atomic) and intra-group reduction (by using local memory for data exchange).
+/// A special GEMM_UNIVERSAL implementation to increase the hardware occupancy
+/// by splitting the GEMM_UNIVERSAL task along k dimension. It includes
+/// inter-group reduction (by using global atomic) and intra-group reduction (by
+/// using local memory for data exchange).
 /// @tparam num_global_kslicing_ Is the k dim split ratio between groups.
 /// @tparam num_local_kslicing_ Is the k dim split ratio within a group.
 /// @tparam arch_tag_ Is the HW architecture.
@@ -134,13 +139,13 @@ struct dispatch_policy_kslicing {
 };
 
 /// @brief StreamK GEMM implementation.
-/// A special GEMM implementation to avoid tail effects when GEMM shape does not fit the machine
-/// Implements variable K-slicing for effective load-balancing and performs inter-group reduction.
-/// Implementation loosely based on this paper - https://arxiv.org/pdf/2301.03598.pdf
+/// A special GEMM implementation to avoid tail effects when GEMM shape does not
+/// fit the machine Implements variable K-slicing for effective load-balancing
+/// and performs inter-group reduction. Implementation loosely based on this
+/// paper - https://arxiv.org/pdf/2301.03598.pdf
 /// @tparam arch_tag_ Is the HW architecture.
 template <gpu_arch arch_tag_ = gpu_arch::Xe>
 struct dispatch_policy_stream_k {
-
     static constexpr gpu_arch arch_tag = arch_tag_;
 
     uint32_t matrix_m;
@@ -154,7 +159,7 @@ struct dispatch_policy_stream_k {
     uint32_t sg_tile_m;
     uint32_t sg_tile_n;
 
-    ///Number of xecores available for stream_k load balancing
+    /// Number of xecores available for stream_k load balancing
     uint32_t avail_xecores;
 
     uint32_t num_workgroups;
@@ -167,7 +172,8 @@ struct dispatch_policy_stream_k {
     uint32_t sk_regions;
     uint32_t sk_groups_per_region;
 
-    //FastDivMod counters initialized in host to use multiply and shift operations in kernel code for modulus and division
+    // FastDivMod counters initialized in host to use multiply and shift
+    // operations in kernel code for modulus and division
     FastDivMod div_mod_tiles_m;
     FastDivMod div_mod_tiles_n;
     FastDivMod div_mod_iters_per_tile;
@@ -180,9 +186,10 @@ struct dispatch_policy_stream_k {
     /// Minimum number  of MAC-iterations per streamk group
     static int const kMinItersPerSkGroup = 2;
 
-    //Host+Device interface functions
+    // Host+Device interface functions
 
-    /// @brief Host helper function to get the expected nd_range under the current GEMM config.
+    /// @brief Host helper function to get the expected nd_range under the current
+    /// GEMM config.
     /// @return Expected nd_range.
     cl::sycl::range<3> get_group_range() const {
         cl::sycl::range<3> group_range
@@ -190,12 +197,12 @@ struct dispatch_policy_stream_k {
         return group_range;
     };
 
-    /// @brief Host helper function to compute sk_groups to dispatch for a given number of sk_tiles
+    /// @brief Host helper function to compute sk_groups to dispatch for a given
+    /// number of sk_tiles
     void get_sk_workgroups(int &sk_groups, /// [out]
             int &savings_iters, /// [out]
             int sk_tiles, int iters_per_tile, int avail_xecores,
             bool allow_partial_wave) const {
-
         savings_iters = INT_MIN;
         sk_groups = 0;
 
@@ -214,7 +221,6 @@ struct dispatch_policy_stream_k {
 
         for (int trial_sk_groups = min_sk_groups;
                 trial_sk_groups <= max_sk_groups; trial_sk_groups++) {
-
             int sk_waves
                     = (trial_sk_groups + avail_xecores - 1) / avail_xecores;
             int max_sk_iters_per_group
@@ -225,8 +231,7 @@ struct dispatch_policy_stream_k {
             float iter_cost = 0.02f * float(num_peers) * float(sk_iter_equiv);
 
             if (trial_sk_groups % sk_tiles == 0) {
-
-                //aligned
+                // aligned
                 num_peers = (trial_sk_groups / sk_tiles);
                 iter_cost = 0.0f;
             }
@@ -240,23 +245,22 @@ struct dispatch_policy_stream_k {
                     = dp_equiv_iters - sk_iter_equiv - fixup_iter_equiv;
 
             if (trial_savings_iter >= savings_iters) {
-
                 savings_iters = trial_savings_iter;
                 sk_groups = trial_sk_groups;
             }
         }
     }
 
-    /// @brief Determine the populations of DP and SK groups to invoke for the given number of output tiles
+    /// @brief Determine the populations of DP and SK groups to invoke for the
+    /// given number of output tiles
     void get_groups(int &dp_tiles, int &sk_groups, int output_tiles,
             int iters_per_tile, int avail_xecores) {
-
         int full_waves = output_tiles / avail_xecores;
         int full_wave_tiles = full_waves * avail_xecores;
         int partial_wave_tiles = output_tiles - full_wave_tiles;
 
         if (partial_wave_tiles == 0) {
-            //No tails
+            // No tails
             return;
         }
         int score = -1;
@@ -264,14 +268,13 @@ struct dispatch_policy_stream_k {
         sk_groups = 0;
 
         if (full_waves < 1) {
-
             dp_tiles = full_wave_tiles;
 
             get_sk_workgroups(sk_groups, score, partial_wave_tiles,
                     iters_per_tile, avail_xecores, true);
 
             if (score < 0) {
-                //Not profitable
+                // Not profitable
                 dp_tiles = output_tiles;
                 sk_groups = 0;
             }
@@ -279,7 +282,7 @@ struct dispatch_policy_stream_k {
             return;
         }
 
-        //Form the SK wave by combining the last full wave and the partial wave
+        // Form the SK wave by combining the last full wave and the partial wave
         dp_tiles = full_wave_tiles - avail_xecores;
 
         get_sk_workgroups(sk_groups, score, partial_wave_tiles + avail_xecores,
@@ -288,18 +291,18 @@ struct dispatch_policy_stream_k {
 
         std::cout << "SK Score: " << score << "\n\n";
 
-        if (score < 0) { //Not profitable for stream_k split
+        if (score < 0) { // Not profitable for stream_k split
 
             sk_groups = 0;
             dp_tiles = output_tiles;
         }
     }
 
-    ///Constructor
+    /// Constructor
     inline dispatch_policy_stream_k() = default;
 
     /// @brief Set for device copyable
-    //static constexpr bool host_callable = true;
+    // static constexpr bool host_callable = true;
 
     inline dispatch_policy_stream_k(uint32_t matrix_m_, uint32_t matrix_k_,
             uint32_t matrix_n_, uint32_t wg_tile_m_, uint32_t wg_tile_k_,
@@ -314,10 +317,9 @@ struct dispatch_policy_stream_k {
         , sg_tile_m(sg_tile_m_)
         , sg_tile_n(sg_tile_n_)
         , avail_xecores(avail_xecores_) {
-
         int iters_per_tile = (matrix_k + wg_tile_k - 1) / wg_tile_k;
 
-        //Default values for sk parameters
+        // Default values for sk parameters
         int sk_iters_per_normal_group = 0;
         int sk_iters_per_big_group = 0;
 
@@ -337,7 +339,7 @@ struct dispatch_policy_stream_k {
         int dp_tiles = output_tiles;
         int sk_groups = 0;
 
-        //Use heuristics to get stream_k split
+        // Use heuristics to get stream_k split
         get_groups(dp_tiles, sk_groups, output_tiles, iters_per_tile,
                 avail_xecores);
 
@@ -345,23 +347,22 @@ struct dispatch_policy_stream_k {
 
         // Compute SK group iteration details
         if (sk_groups > 0) {
-
             sk_waves = (sk_groups + avail_xecores - 1) / avail_xecores;
-            //Compute global iteration space - tiles_m*tiles_n*k_iters
+            // Compute global iteration space - tiles_m*tiles_n*k_iters
             int sk_iters = sk_tiles * iters_per_tile;
             sk_groups = std::min(sk_groups, sk_iters);
 
-            //sk_iters may not divide sk_groups evenly; some groups perform one additional iteration
+            // sk_iters may not divide sk_groups evenly; some groups perform one
+            // additional iteration
             sk_iters_per_normal_group = sk_iters / sk_groups;
             int extra_sk_iters
                     = sk_iters - (sk_iters_per_normal_group * sk_groups);
             int sk_big_groups = extra_sk_iters;
             sk_iters_per_big_group = sk_iters_per_normal_group + 1;
 
-            //KSlicing to fill up multiple regions within groups
+            // KSlicing to fill up multiple regions within groups
             uint32_t current_sk_gruops = sk_groups;
             if ((current_sk_gruops > sk_tiles) && (sk_groups % sk_tiles == 0)) {
-
                 sk_regions = sk_tiles;
             }
 
@@ -369,7 +370,7 @@ struct dispatch_policy_stream_k {
             sk_big_groups_per_region = sk_big_groups / sk_regions;
             sk_iters_per_region = sk_iters / sk_regions;
 
-            //Initialize fast divmod counters related to SK
+            // Initialize fast divmod counters related to SK
             div_mod_sk_regions = FastDivMod(sk_regions);
             div_mod_sk_groups_per_region = FastDivMod(sk_groups_per_region);
             div_mod_sk_iters_per_normal_group
@@ -384,7 +385,7 @@ struct dispatch_policy_stream_k {
         dp_groups = dp_tiles;
         num_workgroups = get_num_active_groups();
 
-        //Print the stats
+        // Print the stats
         uint32_t total_tiles = num_tiles_m * num_tiles_n;
         std::cout << " problem size: (" << matrix_m << "," << matrix_n << ")"
                   << ", tiled_shape: (" << num_tiles_m << "," << num_tiles_n
@@ -412,32 +413,28 @@ struct dispatch_policy_stream_k {
 
     ///@brief Kernel helper function to return number of K-iters per output tile
     __XETLA_API KERNEL_FUNC int get_iters_per_tile() const {
-
         return static_cast<int>(div_mod_iters_per_tile);
     }
 
-    ///@brief Kernel helper function to return number of K-iters for normal sk groups
+    ///@brief Kernel helper function to return number of K-iters for normal sk
+    ///groups
     __XETLA_API KERNEL_FUNC int get_sk_iters_per_normal_group() const {
-
         return static_cast<int>(div_mod_sk_iters_per_normal_group);
     }
 
     ///@brief Kernel helper function to return number of SK regions
     __XETLA_API KERNEL_FUNC int get_sk_regions() const {
-
         return static_cast<int>(div_mod_sk_regions);
     }
 
     ///@brief Kernel helper function to return number of SK groups per region
     __XETLA_API KERNEL_FUNC int get_sk_groups_per_region() const {
-
         return static_cast<int>(div_mod_sk_groups_per_region);
     }
 
     ///@brief Kernel function to get tile offset for m and n
     __XETLA_API KERNEL_FUNC void get_tile_offsets(
             int tile_idx, int &tile_offset_m, int &tile_offset_n) const {
-
         int tiles_m = static_cast<int>(div_mod_tiles_m);
         int tiles_n = static_cast<int>(div_mod_tiles_n);
         if (tiles_m > tiles_n) {
@@ -449,7 +446,6 @@ struct dispatch_policy_stream_k {
 
     ///@brief Kernel function to return tile idx for current sk iteration
     __XETLA_API KERNEL_FUNC int get_sk_tile_idx(int iter) const {
-
         int tile_idx = div_mod_iters_per_tile.div(iter);
         return tile_idx;
     }
@@ -465,28 +461,28 @@ struct dispatch_policy_stream_k {
         group_iter_begin = (region_idx * sk_iters_per_region)
                 + (group_idx_in_region * get_sk_iters_per_normal_group());
 
-        //Adjust extents for the first num_big_group groups that get one extra iteration
+        // Adjust extents for the first num_big_group groups that get one extra
+        // iteration
         int group_iters = get_sk_iters_per_normal_group();
         uint32_t current_group_idx_in_region = group_idx_in_region;
         if (current_group_idx_in_region < sk_big_groups_per_region) {
-
             group_iter_begin += group_idx_in_region;
             group_iters += 1;
         } else {
-
-            //This is a regular group
+            // This is a regular group
             group_iter_begin += sk_big_groups_per_region;
         }
 
         group_iter_end = group_iter_begin + group_iters;
     }
 
-    ///@brief kernel function to get the first sk group index writing the sliced output tile;
+    ///@brief kernel function to get the first sk group index writing the sliced
+    ///output tile;
     __XETLA_API KERNEL_FUNC int get_first_group_idx(
             int tile_idx, int group_idx) const {
         uint32_t current_tile_idx = tile_idx;
         if (current_tile_idx >= sk_tiles) {
-            //DP group
+            // DP group
             return group_idx;
         }
 
@@ -497,12 +493,12 @@ struct dispatch_policy_stream_k {
         div_mod_sk_iters_per_region.fast_divmod(
                 region_idx, iter_in_region, iter);
 
-        //Number of iterations in the big group region
+        // Number of iterations in the big group region
         int big_group_iters
                 = sk_big_groups_per_region * get_sk_iters_per_normal_group()
                 + sk_big_groups_per_region;
 
-        //Number of iterations in the normal group region
+        // Number of iterations in the normal group region
         int normal_group_iters = iter_in_region - big_group_iters;
 
         uint32_t big_group_idx_in_region

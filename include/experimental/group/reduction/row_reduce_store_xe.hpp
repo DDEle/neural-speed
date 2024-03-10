@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -59,7 +59,7 @@ struct group_row_reduce_store_t<dtype_acc, dtype_out, row_size, wg_size_x,
             subgroup::msg_type_v<local_ld_tile_desc_t, mem_space::local>,
             gpu_arch::Xe>;
 
-    //If the local tile size is small, we still can use 2D block store
+    // If the local tile size is small, we still can use 2D block store
     using global_st_tile_desc_t = subgroup::tile_desc_t<local_tile_size_x, 1,
             block_size_x, 1, reg_layout::tiled>;
     using global_st_t = subgroup::tile_t<dtype_out, global_st_tile_desc_t>;

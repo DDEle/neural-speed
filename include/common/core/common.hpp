@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -139,43 +139,64 @@ enum class fence_scope : uint8_t {
 /// Represents an atomic operation. Operations always return the old value(s) of
 /// the target memory location(s) as it was before the operation was applied.
 enum class atomic_op : uint8_t {
-    /// Atomic increment of memory data and return the old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53538)
+    /// Atomic increment of memory data and return the old value.
+    /// [see](https://gfxspecs.intel.com/Predator/Home/Index/53538)
     iinc = 0x0,
-    /// Atomic decrement of memory data and return the old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53539)
+    /// Atomic decrement of memory data and return the old value.
+    /// [see](https://gfxspecs.intel.com/Predator/Home/Index/53539)
     idec = 0x1,
-    /// Atomic signed int add of src1 from memory data and return the old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53542)
+    /// Atomic signed int add of src1 from memory data and return the old value.
+    /// [see](https://gfxspecs.intel.com/Predator/Home/Index/53542)
     iadd = 0x2,
-    /// Atomic signed int subtract of src1 from memory data and return the old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53543)
+    /// Atomic signed int subtract of src1 from memory data and return the old
+    /// value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53543)
     isub = 0x3,
-    /// Atomic store the signed int min of src1 and memory data and return the old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53544)
+    /// Atomic store the signed int min of src1 and memory data and return the old
+    /// value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53544)
     smin = 0x4,
-    /// Atomic store the signed int max of src1 and memory data and return the old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53545)
+    /// Atomic store the signed int max of src1 and memory data and return the old
+    /// value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53545)
     smax = 0x5,
-    /// Atomic bit-compare src1_X and memory data and replace if equal with src1_Y. Returns the old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53555)
+    /// Atomic bit-compare src1_X and memory data and replace if equal with
+    /// src1_Y. Returns the old value.
+    /// [see](https://gfxspecs.intel.com/Predator/Home/Index/53555)
     cmpxchg = 0x6,
-    /// Atomic float add of src1 from memory data and return the old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53548)
+    /// Atomic float add of src1 from memory data and return the old value.
+    /// [see](https://gfxspecs.intel.com/Predator/Home/Index/53548)
     fadd = 0x7,
-    /// Atomic float subtract of src1 from memory data and return the old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53549)
+    /// Atomic float subtract of src1 from memory data and return the old value.
+    /// [see](https://gfxspecs.intel.com/Predator/Home/Index/53549)
     fsub = 0x8,
-    /// Atomic store the float min of src1 and memory data and return the old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53550)
+    /// Atomic store the float min of src1 and memory data and return the old
+    /// value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53550)
     fmin = 0x9,
-    /// Atomic store the float max of src1 and memory data and return the old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53551)
+    /// Atomic store the float max of src1 and memory data and return the old
+    /// value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53551)
     fmax = 0xa,
-    /// Atomic float compare src1_X and memory data and replace if equal with src1_Y. Returns the old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53556)
+    /// Atomic float compare src1_X and memory data and replace if equal with
+    /// src1_Y. Returns the old value.
+    /// [see](https://gfxspecs.intel.com/Predator/Home/Index/53556)
     fcmpxchg = 0xb,
-    /// Atomic store the unsigned int min of src1 and memory data and return the old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53546)
+    /// Atomic store the unsigned int min of src1 and memory data and return the
+    /// old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53546)
     umin = 0xc,
-    /// Atomic store the unsigned int max of src1 and memory data and return the old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53547)
+    /// Atomic store the unsigned int max of src1 and memory data and return the
+    /// old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53547)
     umax = 0xd,
-    /// Atomic store the bitwise AND of src1 and memory data and return the old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53552)
+    /// Atomic store the bitwise AND of src1 and memory data and return the old
+    /// value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53552)
     bit_and = 0xe,
-    /// Atomic store the bitwise OR of src1 and memory data and return the old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53553)
+    /// Atomic store the bitwise OR of src1 and memory data and return the old
+    /// value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53553)
     bit_or = 0xf,
-    /// Atomic store the bitwise XOR of src1 and memory data and return the old value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53554)
+    /// Atomic store the bitwise XOR of src1 and memory data and return the old
+    /// value. [see](https://gfxspecs.intel.com/Predator/Home/Index/53554)
     bit_xor = 0x10,
-    /// Atomic read of the memory data value, without modifying the data. [see](https://gfxspecs.intel.com/Predator/Home/Index/53540)
+    /// Atomic read of the memory data value, without modifying the data.
+    /// [see](https://gfxspecs.intel.com/Predator/Home/Index/53540)
     load = 0x11,
-    /// Atomic store untyped data to memory. [see](https://gfxspecs.intel.com/Predator/Home/Index/53541)
+    /// Atomic store untyped data to memory.
+    /// [see](https://gfxspecs.intel.com/Predator/Home/Index/53541)
     store = 0x12
 };
 

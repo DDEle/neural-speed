@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -29,10 +29,11 @@ namespace gpu::xetla {
 /// @addtogroup xetla_core_conv
 /// @{
 
-//template <typename T_dst, typename T_src, int N>
+// template <typename T_dst, typename T_src, int N>
 //__XETLA_API xetla_vector<T_dst, N> xetla_cvt(xetla_vector<T_src, N> src) {}
 
-/// @brief xetla explicit data conversion for standard data types(integer,float,half)
+/// @brief xetla explicit data conversion for standard data
+/// types(integer,float,half)
 /// @tparam T_dst is the destination data type.
 /// @tparam T_src is the source data type.
 /// @tparam N is the element number in xetla_vector.
@@ -123,7 +124,8 @@ xetla_cvt(xetla_vector<T_src, N> src, float scaling_value) {
     return dst;
 }
 
-/// @brief xetpp explicit data conversion with scaling and quantization, float32->int8.
+/// @brief xetpp explicit data conversion with scaling and quantization,
+/// float32->int8.
 /// @tparam T_dst is the int8 data type.
 /// @tparam T_src is the float32 data type.
 /// @tparam N is the element number in xetla_vector.

@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -34,7 +34,9 @@ namespace gpu::xetla {
 /// @{
 
 /// @brief Tensor descriptor construction(global memory version).
-/// Constructs a tensor descriptor based on the given arguments, check [here](https://gfxspecs.intel.com/Predator/Home/Index/63986) for more details.
+/// Constructs a tensor descriptor based on the given arguments, check
+/// [here](https://gfxspecs.intel.com/Predator/Home/Index/63986) for more
+/// details.
 /// @tparam Ty is the data type per element.
 /// @tparam block_width is the width of the block to be loaded.
 /// @tparam block_height is the height of the block to be loaded.
@@ -65,7 +67,8 @@ __XETLA_API void xetla_fill_tdesc(xetla_tdescriptor_ref tdesc, Ty *p,
 }
 
 /// @brief Tensor descriptor construction(local memory version).
-/// Constructs a tensor descriptor based on the given arguments, keep the same format as the global memory version.
+/// Constructs a tensor descriptor based on the given arguments, keep the same
+/// format as the global memory version.
 /// @tparam Ty is the data type per element.
 /// @param tdesc [in|out] is the reference of tensor descriptor.
 /// @param base_address [in] is the local memory base address of the tensor.
@@ -88,7 +91,9 @@ __XETLA_API void xetla_fill_tdesc(xetla_tdescriptor_ref tdesc,
 }
 
 /// @brief Generate a new tensor descriptor(global memory version).
-/// Generate a tensor descriptor based on the given arguments, check [here](https://gfxspecs.intel.com/Predator/Home/Index/63986) for more details.
+/// Generate a tensor descriptor based on the given arguments, check
+/// [here](https://gfxspecs.intel.com/Predator/Home/Index/63986) for more
+/// details.
 /// @tparam Ty is the data type per element.
 /// @tparam block_width is the width of the block to be loaded.
 /// @tparam block_height is the height of the block to be loaded.
@@ -121,7 +126,8 @@ __XETLA_API xetla_tdescriptor xetla_get_tdesc(Ty *p, int tensor_width,
 }
 
 /// @brief Generate a new tensor descriptor(local memory version).
-/// Constructs a tensor descriptor based on the given arguments, keep the same format as the global memory version.
+/// Constructs a tensor descriptor based on the given arguments, keep the same
+/// format as the global memory version.
 /// @tparam Ty is the data type per element.
 /// @param base_address [in] is the local memory base address of the tensor.
 /// @param tensor_width [in] is the width of the tensor.
@@ -148,7 +154,8 @@ __XETLA_API xetla_tdescriptor xetla_get_tdesc(uint32_t base_address,
 
 /// @brief Update the x coordinate in the given tensor descriptor.
 /// @param tdesc [in|out] is the reference of tensor descriptor.
-/// @param doffset_x [in] is the offset (in number of data elements) in x direction.
+/// @param doffset_x [in] is the offset (in number of data elements) in x
+/// direction.
 __XETLA_API void xetla_update_tdesc_offsetx(
         xetla_tdescriptor_ref tdesc, int32_t doffset_x) {
     detail::xetla_set_tensor_offset_x(
@@ -157,7 +164,8 @@ __XETLA_API void xetla_update_tdesc_offsetx(
 
 /// @brief Update the y coordinate in the given tensor descriptor.
 /// @param tdesc [in|out] is the reference of tensor descriptor.
-/// @param doffset_y [in] is the offset (in number of data elements) in y direction.
+/// @param doffset_y [in] is the offset (in number of data elements) in y
+/// direction.
 __XETLA_API void xetla_update_tdesc_offsety(
         xetla_tdescriptor_ref tdesc, int32_t doffset_y) {
     detail::xetla_set_tensor_offset_y(
@@ -166,14 +174,19 @@ __XETLA_API void xetla_update_tdesc_offsety(
 
 ///
 /// @brief Tensor load API.
-/// This is tensor load API from global to registers. Check [here](https://gfxspecs.intel.com/Predator/Home/Index/53680) for more details.
+/// This is tensor load API from global to registers. Check
+/// [here](https://gfxspecs.intel.com/Predator/Home/Index/53680) for more
+/// details.
 /// @tparam Ty is the data type per element.
 /// @tparam N is the total number of elements to load.
 /// @tparam L1H is L1$ cache hint.
 /// @tparam L2H is L2$ cache hint.
-/// @tparam transpose is a flag to indicate whether the data is transposed during load.
-/// @tparam transform is a flag to indicate whether the data is transformed (data pack inside dword) during load.
-/// @param tdesc [in] is tensor descriptor including tensor base address, tensor dimensions, block size, etc.
+/// @tparam transpose is a flag to indicate whether the data is transposed
+/// during load.
+/// @tparam transform is a flag to indicate whether the data is transformed
+/// (data pack inside dword) during load.
+/// @param tdesc [in] is tensor descriptor including tensor base address, tensor
+/// dimensions, block size, etc.
 /// @return xetla_vector is data returned from the load.
 ///
 template <typename Ty, uint32_t N, cache_hint L1H = cache_hint::none,
@@ -212,12 +225,16 @@ xetla_tload_global(xetla_tdescriptor tdesc) {
 
 ///
 /// @brief Tensor store API.
-/// Tensor store API is to store a n-d (e.g. n=2) tensor into global using tensor descriptor. Check [here](https://gfxspecs.intel.com/Predator/Home/Index/53530) for more details.
+/// Tensor store API is to store a n-d (e.g. n=2) tensor into global using
+/// tensor descriptor. Check
+/// [here](https://gfxspecs.intel.com/Predator/Home/Index/53530) for more
+/// details.
 /// @tparam Ty is the data type per element.
 /// @tparam N is the number of elements to store.
 /// @tparam L1H is L1 cache hint.
 /// @tparam L2H is L2 cache hint.
-/// @param tdesc [in] is tensor descriptor including tensor base address, tensor dimensions, block size, etc.
+/// @param tdesc [in] is tensor descriptor including tensor base address, tensor
+/// dimensions, block size, etc.
 /// @param data [in] is tensor data to store.
 /// @return none.
 ///
@@ -245,18 +262,20 @@ xetla_tstore_global(xetla_tdescriptor tdesc, xetla_vector<Ty, N> data) {
 
 ///
 /// @brief Tensor prefetch API.
-/// This is tensor prefetch API from global memory to L1$/L2$. Check [here](https://gfxspecs.intel.com/Predator/Home/Index/53680) for more details.
+/// This is tensor prefetch API from global memory to L1$/L2$. Check
+/// [here](https://gfxspecs.intel.com/Predator/Home/Index/53680) for more
+/// details.
 /// @tparam Ty is the data type per element.
 /// @tparam L1H is L1$ cache hit.
 /// @tparam L2H is L2$ cache hit.
-/// @param tdesc is tensor descriptor including tensor base address, tensor dimensions, block size, etc.
+/// @param tdesc is tensor descriptor including tensor base address, tensor
+/// dimensions, block size, etc.
 /// @return none.
 ///
 template <typename Ty, cache_hint L1H = cache_hint::cached,
         cache_hint L2H = cache_hint::cached, gpu_arch arch_tag = gpu_arch::Xe>
 __XETLA_API std::enable_if_t<arch_tag == gpu_arch::Xe, void>
 xetla_tprefetch_global(xetla_tdescriptor tdesc) {
-
     uint32_t msg_desc = 3;
     msg_desc |= 0 << 7;
     msg_desc |= detail::get_element_size_code<sizeof(Ty)>() << 9;
@@ -276,14 +295,17 @@ xetla_tprefetch_global(xetla_tdescriptor tdesc) {
 
 ///
 /// @brief Tensor atomic store API.
-/// Tensor atomic store API is to store a n-d (e.g. n=2) tensor into global. Check [here](https://gfxspecs.intel.com/Predator/Home/Index/53548) for more details.
+/// Tensor atomic store API is to store a n-d (e.g. n=2) tensor into global.
+/// Check [here](https://gfxspecs.intel.com/Predator/Home/Index/53548) for more
+/// details.
 /// @tparam Ty is the data type per element.
 /// @tparam N is the number of elements to store.
 /// @tparam L1H is L1 cache hint.
 /// @tparam L2H is L2 cache hint.
 /// @tparam Toffset is the offset data type.
 /// @param base_address [in] is the 64bit base address of the surface.
-/// @param offset [in] is the address offset for each channel, default is 32bits.
+/// @param offset [in] is the address offset for each channel, default is
+/// 32bits.
 /// @param data [in] is tensor data to store.
 /// @return none.
 ///
@@ -294,7 +316,6 @@ __XETLA_API std::enable_if_t<arch_tag == gpu_arch::Xe, void>
 xetla_tatomic_store_global(uint64_t base_address,
         xetla_vector<Toffset, N> offset, xetla_vector<Ty, N> data,
         xetla_mask<N> pred = 1) {
-
     constexpr uint32_t numSrc0 = (N * sizeof(uint64_t) + 63) / 64;
     constexpr uint32_t numSrc1 = (N * sizeof(Ty) + 63) / 64;
 
@@ -310,7 +331,7 @@ xetla_tatomic_store_global(uint64_t base_address,
     }
 
     uint32_t msg_desc = detail::get_atomic_opcode<Op>();
-    ///only support 64bit address
+    /// only support 64bit address
     msg_desc |= 3 << 7;
     msg_desc |= element_size_code << 9;
     msg_desc |= detail::get_atomic_cache_hint_code<L1H, L2H, arch_tag>() << 17;

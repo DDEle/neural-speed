@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 #pragma once
 
@@ -59,7 +59,7 @@ struct xetla_mha_attn_reg_fwd_t {
     static constexpr uint32_t periodic_sync_interval = 0;
     static constexpr uint32_t prefetch_distance = 3;
     static constexpr uint32_t k_stride
-            = 32 / sizeof(dtype_bin); //gemm_t::k_stride;
+            = 32 / sizeof(dtype_bin); // gemm_t::k_stride;
     using bgm_perf_tuning_knob = group::perf_tuning_knob_t<k_stride,
             prefetch_distance, periodic_sync_interval>;
 
@@ -299,7 +299,8 @@ struct xetla_mha_attn_reg_fwd_t {
     /// @brief Arguments for xetla_softmax_fwd_t::run.
     /// User should prepare matQ_ptr, matK_ptr, matQKT_ptr, ...
     struct arguments_t {
-        // assume base address, surface width, height, pitch, start coordinate was set
+        // assume base address, surface width, height, pitch, start coordinate was
+        // set
         uint32_t *mList_ptr;
         dtype_bin *matQ_ptr;
         dtype_bin *matK_ptr;
@@ -318,7 +319,6 @@ struct xetla_mha_attn_reg_fwd_t {
     /// The basic process is GEMM -> Softmax -> GEMM.
     /// @param args [in] Includes base descriptors and tid info.
     __XETLA_API static void call(sycl::nd_item<3> &item, arguments_t *args) {
-
         int tru_seqlen = 0;
         int tru_seqlen_ex = 0;
         int seqlen_entry = 0;
@@ -327,7 +327,7 @@ struct xetla_mha_attn_reg_fwd_t {
         int hiddensize = 1024;
         int numhead = 16;
         int hdsz = 64;
-        int wg_tile_QKT_k = hdsz; //args->matrix_k;
+        int wg_tile_QKT_k = hdsz; // args->matrix_k;
         int wg_tile_out_k;
         int batchid = groupid / numhead;
         int headid = groupid % numhead;
@@ -349,12 +349,12 @@ struct xetla_mha_attn_reg_fwd_t {
         tru_seqlen = list_vec[0];
         seqlen_entry = list_vec[1];
         wg_tile_out_k = tru_seqlen;
-        tru_seqlen_ex = tru_seqlen; //DW align
+        tru_seqlen_ex = tru_seqlen; // DW align
         if (sfx_type_size == 2)
             tru_seqlen_ex = (((tru_seqlen + 1) >> 1) << 1);
         else if (sfx_type_size == 1)
             tru_seqlen_ex = (((tru_seqlen + 3) >> 2) << 2);
-        //float totalscaling = args->Pinv * args->Scaling;
+        // float totalscaling = args->Pinv * args->Scaling;
 
         xetla_rand_t<Rand_SIMD> Rand_Gen;
         uint32_t rand_threshold = rand_threshold_const;
@@ -371,7 +371,7 @@ struct xetla_mha_attn_reg_fwd_t {
             Rand_Gen.init(rand_seed, rand_subseq, rand_offset);
         }
 
-        //std_leqlen = 256
+        // std_leqlen = 256
         int all_vert_loop_num = 2;
         int all_vert_stride = 128;
         int all_vert128_shift = 0;
@@ -459,7 +459,6 @@ struct xetla_mha_attn_reg_fwd_t {
 
         for (int all_vert_loop = 0; all_vert_loop < all_vert_loop_num;
                 all_vert_loop++) {
-
             xetla_vector<float, 4 * 16 * 16> matElem_reg_4x16x16;
             xetla_vector<uint8_t, 4 * 16 * 16> rand_bit;
             bool valid_compute = true;
@@ -469,7 +468,6 @@ struct xetla_mha_attn_reg_fwd_t {
                 valid_compute = false;
 
             if (valid_compute) {
-
                 switch (std_seqlen) {
                     case 128: {
                         gemm_arguments_128x128 gemm_arg_128x128;
@@ -492,7 +490,7 @@ struct xetla_mha_attn_reg_fwd_t {
                         int start_x_b = headid * hdsz;
                         int start_y_b = seqlen_entry;
 
-                        //B transpose
+                        // B transpose
                         gemm_arg_128x128.matB_base_desc.init({args->matK_ptr},
                                 {height_b, width_b, pitch_b},
                                 {start_y_b, start_x_b});
@@ -532,7 +530,7 @@ struct xetla_mha_attn_reg_fwd_t {
                         int start_x_b = headid * hdsz;
                         int start_y_b = seqlen_entry;
 
-                        //B transpose
+                        // B transpose
                         gemm_arg_128x256.matB_base_desc.init({args->matK_ptr},
                                 {height_b, width_b, pitch_b},
                                 {start_y_b, start_x_b});
@@ -573,7 +571,7 @@ struct xetla_mha_attn_reg_fwd_t {
                         int start_x_b = headid * hdsz;
                         int start_y_b = seqlen_entry;
 
-                        //B transpose
+                        // B transpose
                         gemm_arg_64x384.matB_base_desc.init({args->matK_ptr},
                                 {height_b, width_b, pitch_b},
                                 {start_y_b, start_x_b});
@@ -613,7 +611,7 @@ struct xetla_mha_attn_reg_fwd_t {
                         int start_x_b = headid * hdsz;
                         int start_y_b = seqlen_entry;
 
-                        //B transpose
+                        // B transpose
                         gemm_arg_64x512.matB_base_desc.init({args->matK_ptr},
                                 {height_b, width_b, pitch_b},
                                 {start_y_b, start_x_b});
@@ -653,7 +651,7 @@ struct xetla_mha_attn_reg_fwd_t {
                         int start_x_b = headid * hdsz;
                         int start_y_b = seqlen_entry;
 
-                        //B transpose
+                        // B transpose
                         gemm_arg_32x1024.matB_base_desc.init({args->matK_ptr},
                                 {height_b, width_b, pitch_b},
                                 {start_y_b, start_x_b});
@@ -691,7 +689,7 @@ struct xetla_mha_attn_reg_fwd_t {
                         int start_x_b = headid * hdsz;
                         int start_y_b = seqlen_entry;
 
-                        //B transpose
+                        // B transpose
                         gemm_arg_16x2048.matB_base_desc.init({args->matK_ptr},
                                 {height_b, width_b, pitch_b},
                                 {start_y_b, start_x_b});
@@ -708,9 +706,9 @@ struct xetla_mha_attn_reg_fwd_t {
                                 .xetla_select<4 * 16 * 16, 1>(0)
                                 = matAcc_16x2048.reg * args->Pinv;
                     }
-                } //switch
+                } // switch
 
-                { //softmax
+                { // softmax
                     xetla_vector<float, 16 * 1> matElem_reg_max_local;
                     xetla_vector<float, 16 * 1> matElem_reg_max_global;
 
@@ -1198,9 +1196,9 @@ struct xetla_mha_attn_reg_fwd_t {
                             }
                         }
                     }
-                } //softmax
+                } // softmax
 
-                //store
+                // store
                 switch (std_seqlen) {
                     case 128: {
                         matC_128x128_t matC_128x128;
@@ -1562,9 +1560,9 @@ struct xetla_mha_attn_reg_fwd_t {
                                 matC_16x2048, matC_16x2048_payload);
                         xetla_fence<memory_kind::untyped_global>();
                     }
-                } //store switch
+                } // store switch
 
-            } else { //valid_compute
+            } else { // valid_compute
                 first_nbarr.arrive();
                 first_nbarr.wait();
 
@@ -1572,12 +1570,11 @@ struct xetla_mha_attn_reg_fwd_t {
                 second_nbarr.wait();
             }
 
-            //QKTV
+            // QKTV
             int all_vert128_loop = all_vert_loop >> all_vert128_shift;
             if (((((all_vert128_loop + 1) << all_vert128_shift) - 1)
                         == all_vert_loop)
                     || (all_vert128_shift == 0)) {
-
                 third_nbarr.arrive();
                 third_nbarr.wait();
 
@@ -1630,9 +1627,9 @@ struct xetla_mha_attn_reg_fwd_t {
                 subgroup::tile_store(matC_128x64, matC_128x64_payload);
             }
 
-        } //all_vert128_loop
-    } //xetla_softmax_fwd_t::call()
-}; //struct xetla_softmax_fwd_t
+        } // all_vert128_loop
+    } // xetla_softmax_fwd_t::call()
+}; // struct xetla_softmax_fwd_t
 
 template <typename dtype_bwd_bin_, typename dtype_bwd_bot_,
         typename dtype_bwd_sfx_, typename dtype_bwd_acc_, int HWThreadNum,
@@ -1669,7 +1666,7 @@ struct xetla_mha_attn_reg_bwd_t {
     static constexpr uint32_t prefetch_distance = 3;
 
     static constexpr uint32_t k_stride
-            = 32 / sizeof(dtype_bin); //gemm_t::k_stride;
+            = 32 / sizeof(dtype_bin); // gemm_t::k_stride;
     using bgm_perf_tuning_knob = group::perf_tuning_knob_t<k_stride,
             prefetch_distance, periodic_sync_interval>;
 
@@ -2024,7 +2021,8 @@ struct xetla_mha_attn_reg_bwd_t {
     /// @brief Arguments for xetla_softmax_bwd_t::run.
     /// User should prepare matQ_ptr, matK_ptr, matV_ptr, ...
     struct arguments_t {
-        // assume base address, surface width, height, pitch, start coordinate was set
+        // assume base address, surface width, height, pitch, start coordinate was
+        // set
         uint32_t *mList_ptr;
         dtype_bin *matQ_ptr;
         dtype_bin *matK_ptr;
@@ -2046,7 +2044,6 @@ struct xetla_mha_attn_reg_bwd_t {
     /// The basic process is GEMM -> Softmax -> GEMM.
     /// @param args [in] Includes base descriptors and tid info.
     __XETLA_API static void call(sycl::nd_item<3> &item, arguments_t *args) {
-
         int tru_seqlen = 0;
         int tru_seqlen_ex = 0;
         int seqlen_entry = 0;
@@ -2054,7 +2051,7 @@ struct xetla_mha_attn_reg_bwd_t {
         int numhead = 16;
         int hdsz = 64;
         int max_seqlen = Max_SeqLen;
-        int wg_tile_QKT_k = hdsz; //args->matrix_k;
+        int wg_tile_QKT_k = hdsz; // args->matrix_k;
         int wg_tile_out_k;
 
         int groupid = item.get_group(0);
@@ -2065,7 +2062,7 @@ struct xetla_mha_attn_reg_bwd_t {
         int tid_linear = item.get_local_linear_id();
         g_thd32_tid.init(tid_linear);
 
-        //float totalscaling = args->Pinv * args->Scaling;
+        // float totalscaling = args->Pinv * args->Scaling;
 
         uint32_t batch_offset = sizeof(uint32_t) * list_width * batchid;
         xetla_vector<uint32_t, list_width> list_offsets
@@ -2079,13 +2076,13 @@ struct xetla_mha_attn_reg_bwd_t {
         tru_seqlen = list_vec[0];
         seqlen_entry = list_vec[1];
         wg_tile_out_k = tru_seqlen;
-        tru_seqlen_ex = tru_seqlen; //4: dw aligned
+        tru_seqlen_ex = tru_seqlen; // 4: dw aligned
         if (sfx_type_size == 2)
             tru_seqlen_ex = ((tru_seqlen + 1) >> 1) << 1;
         else if (sfx_type_size == 1)
             tru_seqlen_ex = ((tru_seqlen + 3) >> 2) << 2;
 
-        //reset for all std_seqlen
+        // reset for all std_seqlen
         int all_vert_loop_num = 0;
         int transp128_loop_num = 0;
         int transp256_loop_num = 0;
@@ -2215,7 +2212,7 @@ struct xetla_mha_attn_reg_bwd_t {
                     matAcc_128x64_trnp_af_t>(matC_128x64, matAcc_128x64);
             subgroup::tile_store(matC_128x64, matC_128x64_payload);
 
-            //add global sync if nbarr used inside gemm
+            // add global sync if nbarr used inside gemm
             all_nbarr.arrive();
             all_nbarr.wait();
         }
@@ -2267,7 +2264,7 @@ struct xetla_mha_attn_reg_bwd_t {
                     matAcc_256x64_trnp_af_t>(matC_256x64, matAcc_256x64);
             subgroup::tile_store(matC_256x64, matC_256x64_payload);
 
-            //add global sync if nbarr used inside gemm
+            // add global sync if nbarr used inside gemm
             all_nbarr.arrive();
             all_nbarr.wait();
         }
@@ -2306,7 +2303,6 @@ struct xetla_mha_attn_reg_bwd_t {
                 valid_compute = false;
 
             if (valid_compute) {
-
                 switch (std_seqlen) {
                     case 128: {
                         gemm_arguments_128x128 gemm_arg_128x128;
@@ -2345,7 +2341,7 @@ struct xetla_mha_attn_reg_bwd_t {
                         int start_x_b = headid * hdsz;
                         int start_y_b = seqlen_entry;
 
-                        //B transpose, be swapped in init
+                        // B transpose, be swapped in init
                         gemm_arg_128x128.matB_base_desc.init({args->matV_ptr},
                                 {height_b, width_b, pitch_b},
                                 {start_y_b, start_x_b});
@@ -2423,7 +2419,7 @@ struct xetla_mha_attn_reg_bwd_t {
                         int start_x_b = headid * hdsz;
                         int start_y_b = seqlen_entry;
 
-                        //B transpose, be swapped in init
+                        // B transpose, be swapped in init
                         gemm_arg_128x256.matB_base_desc.init({args->matV_ptr},
                                 {height_b, width_b, pitch_b},
                                 {start_y_b, start_x_b});
@@ -2497,7 +2493,7 @@ struct xetla_mha_attn_reg_bwd_t {
                         int start_x_b = headid * hdsz;
                         int start_y_b = seqlen_entry;
 
-                        //B transpose, be swapped in init
+                        // B transpose, be swapped in init
                         gemm_arg_64x384.matB_base_desc.init({args->matV_ptr},
                                 {height_b, width_b, pitch_b},
                                 {start_y_b, start_x_b});
@@ -2574,7 +2570,7 @@ struct xetla_mha_attn_reg_bwd_t {
                         int start_x_b = headid * hdsz;
                         int start_y_b = seqlen_entry;
 
-                        //B transpose, be swapped in init
+                        // B transpose, be swapped in init
                         gemm_arg_64x512.matB_base_desc.init({args->matV_ptr},
                                 {height_b, width_b, pitch_b},
                                 {start_y_b, start_x_b});
@@ -2648,7 +2644,7 @@ struct xetla_mha_attn_reg_bwd_t {
                         int start_x_b = headid * hdsz;
                         int start_y_b = seqlen_entry;
 
-                        //B transpose, be swapped in init
+                        // B transpose, be swapped in init
                         gemm_arg_32x1024.matB_base_desc.init({args->matV_ptr},
                                 {height_b, width_b, pitch_b},
                                 {start_y_b, start_x_b});
@@ -2722,7 +2718,7 @@ struct xetla_mha_attn_reg_bwd_t {
                         int start_x_b = headid * hdsz;
                         int start_y_b = seqlen_entry;
 
-                        //B transpose, be swapped in init
+                        // B transpose, be swapped in init
                         gemm_arg_16x2048.matB_base_desc.init({args->matV_ptr},
                                 {height_b, width_b, pitch_b},
                                 {start_y_b, start_x_b});
@@ -2759,11 +2755,10 @@ struct xetla_mha_attn_reg_bwd_t {
                         matW_reg_4x16x16.xetla_select<16 * 16 * 4, 1>(0)
                                 = xetla_cvt<float, dtype_sfx>(matW_16x2048.reg);
                     } break;
-                } //switch
+                } // switch
 
-                //softmax
+                // softmax
                 {
-
                     xetla_vector<float, 16 * 1> matElem_reg_Sum_1;
                     xetla_vector<float, 16 * 16> matElem_reg_Sum;
                     xetla_vector<float, 16 * 8> matElem_reg_Sum_8;
@@ -2787,7 +2782,6 @@ struct xetla_mha_attn_reg_bwd_t {
                                       .xetla_select<16 * 16, 1>(16 * 16);
 
                     if (valid_block_16x16_x > 2) {
-
                         matElem_reg_4x16x16.xetla_format<float>()
                                 .xetla_select<16 * 16, 1>(16 * 16 * 2)
                                 *= matW_reg_4x16x16.xetla_select<16 * 16, 1>(
@@ -2999,7 +2993,7 @@ struct xetla_mha_attn_reg_bwd_t {
                     }
                 }
 
-                //store
+                // store
                 switch (std_seqlen) {
                     case 128: {
                         matC_128x128_t matC_128x128;
@@ -3100,9 +3094,9 @@ struct xetla_mha_attn_reg_bwd_t {
                                 matC_16x2048, matC_16x2048_payload);
                         xetla_fence<memory_kind::untyped_global>();
                     } break;
-                } //switch
+                } // switch
 
-            } //valid coputing
+            } // valid coputing
             else {
                 first_nbarr.arrive();
                 first_nbarr.wait();
@@ -3114,7 +3108,7 @@ struct xetla_mha_attn_reg_bwd_t {
             int all_vert128_loop = all_vert_loop >> all_vert128_shift;
             if (((((all_vert128_loop + 1) << all_vert128_shift) - 1)
                         == all_vert_loop)
-                    || (all_vert128_shift == 0)) { //dQ
+                    || (all_vert128_shift == 0)) { // dQ
                 gemm_arguments_128x64 gemm_arg_128x64;
                 matAcc_128x64_t matAcc_128x64;
                 matC_128x64_t matC_128x64;
@@ -3161,7 +3155,7 @@ struct xetla_mha_attn_reg_bwd_t {
                         matC_128x64, matAcc_128x64);
                 subgroup::tile_store(matC_128x64, matC_128x64_payload);
             }
-        } //all_vert128_loop
+        } // all_vert128_loop
 
         for (int transp256_loop = 0; transp256_loop < transp256_loop_num;
                 transp256_loop++) {
@@ -3264,9 +3258,9 @@ struct xetla_mha_attn_reg_bwd_t {
 
             all_nbarr.arrive();
             all_nbarr.wait();
-        } //transp128_loop
+        } // transp128_loop
 
-    } //xetla_softmax_bwd_t::call
-}; //struct xetla_softmax_bwd_t
+    } // xetla_softmax_bwd_t::call
+}; // struct xetla_softmax_bwd_t
 
 } // namespace gpu::xetla::kernel

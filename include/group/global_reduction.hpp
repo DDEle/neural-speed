@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -39,7 +39,8 @@ template <reduce_op reduce_kind, typename tile_shape_acc,
         uint32_t counter_size, gpu_arch arch_tag, class enable = void>
 class global_reduce_t {};
 
-/// @brief Cross group global reduction. Specialized for reduce_op::sum and Xe architecture.
+/// @brief Cross group global reduction. Specialized for reduce_op::sum and Xe
+/// architecture.
 template <typename tile_shape_acc_, typename tile_shape_cnt_,
         typename mem_desc_acc_t_, typename mem_desc_cnt_t_,
         uint32_t num_group_reduction, uint32_t counter_size, gpu_arch arch_tag_>
@@ -125,9 +126,10 @@ public:
     }
 
     /// @brief Global reduction.
-    /// 1) each group stores tile data to global memory by using global atomic add ->
-    /// 2) after reduction complete, update the counter by using atomic inc ->
-    /// 3) the last group load the data back to EU, and clean the accumulation buffer and counter buffer.
+    /// 1) each group stores tile data to global memory by using global atomic add
+    /// -> 2) after reduction complete, update the counter by using atomic inc ->
+    /// 3) the last group load the data back to EU, and clean the accumulation
+    /// buffer and counter buffer.
     /// @note only the last group has the valid data.
     /// @param g Is the workgroup of the current tile.
     /// @param matAcc Is the input of the reduction.
@@ -168,7 +170,8 @@ public:
     }
 };
 
-/// @brief Cross group global reduction. Specialized for num_group_reduction=1 and Xe architecture.
+/// @brief Cross group global reduction. Specialized for num_group_reduction=1
+/// and Xe architecture.
 template <typename tile_shape_acc_, typename tile_shape_cnt_,
         typename mem_desc_acc_t_, typename mem_desc_cnt_t_,
         uint32_t counter_size_, gpu_arch arch_tag_>

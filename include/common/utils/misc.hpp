@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -25,22 +25,20 @@ __XETLA_API constexpr uint32_t div_round_up(uint32_t n, uint32_t d) {
     return (n + d - 1) / d;
 }
 
-//Rounds number down towards the next lowest number
-//e.g. -2.0/3.0 ~ -0.666 -> -1.
+// Rounds number down towards the next lowest number
+// e.g. -2.0/3.0 ~ -0.666 -> -1.
 __XETLA_API constexpr int div_round_down(int n, int d) {
-
     return (n - (((n % d) + d) % d)) / d;
 }
 
-//Calculate modulo based on definition that uses floored divison.
-//Result has the same sign as d.
+// Calculate modulo based on definition that uses floored divison.
+// Result has the same sign as d.
 __XETLA_API constexpr int modulo(int n, int d) {
     return (d + (n % d)) % d;
 }
 
-//Pad the given allocation size upto nearest cacheline
+// Pad the given allocation size upto nearest cacheline
 __XETLA_API constexpr uint32_t cacheline_align_up(size_t size) {
-
     const int CACHELINE_SIZE = 256;
     return (size + CACHELINE_SIZE - 1) / CACHELINE_SIZE * CACHELINE_SIZE;
 }
@@ -63,7 +61,8 @@ __XETLA_API xetla_vector<uint32_t, 4> get_time_stamp() {
 /// @brief xetla_vector generation.
 /// Commonly used to generate simd channel id.
 ///
-/// @tparam Ty is type of xetla_vector generated. Only `int` type(or types that can be implicitly converted to int) is allowed.
+/// @tparam Ty is type of xetla_vector generated. Only `int` type(or types that
+/// can be implicitly converted to int) is allowed.
 /// @tparam N is the number of elements in xetla_vector generated.
 /// @param InitVal [in] is the starting value of xetla_vector generation.
 /// @param Step [in] is the step value between adjacent elements.

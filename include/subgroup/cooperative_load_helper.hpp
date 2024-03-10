@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -27,13 +27,15 @@ namespace gpu::xetla::subgroup {
 /// @tparam matAcc_t Is the input mat type.
 /// @tparam tile_shape Is the group-level tile shape.
 /// @tparam mem_layout Is the memory layout of input.
-/// @tparam num_cooperative_wg Is the number of workgroups to do the cooperation.
+/// @tparam num_cooperative_wg Is the number of workgroups to do the
+/// cooperation.
 /// @tparam arch_tag Is the HW architecture.
 template <typename matAcc_t_, mem_layout mem_layout_,
         uint32_t num_cooperative_wg, gpu_arch arch_tag_, class enable = void>
 class cooperative_load_helper_t {};
 
-/// @brief Workgroups to do the cooperative load. Specialized for and row_major and Xe architecture.
+/// @brief Workgroups to do the cooperative load. Specialized for and row_major
+/// and Xe architecture.
 template <typename matAcc_t_, uint32_t num_cooperative_wg, gpu_arch arch_tag_>
 class cooperative_load_helper_t<matAcc_t_, mem_layout::row_major,
         num_cooperative_wg, arch_tag_,
@@ -49,8 +51,9 @@ private:
     // cooperative split, y dir first
     static_assert((num_cooperative_wg & (num_cooperative_wg - 1)) == 0,
             "num_cooperative_wg should be power of 2");
-    //TODO
-    // static_assert(sg_tile_size_y * sg_tile_size_x / 16 / num_cooperative_wg, "");
+    // TODO
+    //  static_assert(sg_tile_size_y * sg_tile_size_x / 16 / num_cooperative_wg,
+    //  "");
 
 public:
     static constexpr uint32_t src_block_size_x = tile_desc_t::block_size_x;
@@ -92,7 +95,8 @@ public:
     }
 };
 
-/// @brief Workgroups to do the cooperative load. Specialized for and row_major and Xe architecture.
+/// @brief Workgroups to do the cooperative load. Specialized for and row_major
+/// and Xe architecture.
 template <typename matAcc_t_, uint32_t num_cooperative_wg, gpu_arch arch_tag_>
 class cooperative_load_helper_t<matAcc_t_, mem_layout::col_major,
         num_cooperative_wg, arch_tag_,

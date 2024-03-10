@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -50,14 +50,16 @@ struct check_prefetch_type {
 
 } // namespace detail
 
-/// @brief Is prefetch data func, which data located in global memory is prefetched to
-/// cache, where has higher bandwidth. e.g. In gemm, prefetch next iteration data for mma
-/// consumption. This func is specicalized for block 2d scenario.
+/// @brief Is prefetch data func, which data located in global memory is
+/// prefetched to cache, where has higher bandwidth. e.g. In gemm, prefetch next
+/// iteration data for mma consumption. This func is specicalized for block 2d
+/// scenario.
 /// @tparam payload_t Is the mem_payload_t struct illustrating memory info
 /// payload indicates the source of prefetch operation.
 /// @tparam L1 Is cache hint for L1 cache.
 /// @tparam L2 Is cache hint for L2 cache.
-/// @param payload Is the payload object with type payload_t. Contains all the information for prefetches.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for prefetches.
 template <cache_hint L1 = cache_hint::cached,
         cache_hint L2 = cache_hint::cached, typename payload_t>
 __XETLA_API typename std::enable_if_t<
@@ -76,14 +78,16 @@ tile_prefetch(payload_t &payload) {
     }
 }
 
-/// @brief Is prefetch data func, which data located in global memory is prefetched to
-/// cache, where has higher bandwidth. e.g. In gemm, prefetch next iteration data for mma
-/// consumption. This func is specicalized for block 1d scenario.
+/// @brief Is prefetch data func, which data located in global memory is
+/// prefetched to cache, where has higher bandwidth. e.g. In gemm, prefetch next
+/// iteration data for mma consumption. This func is specicalized for block 1d
+/// scenario.
 /// @tparam payload_t Is the mem_payload_t struct illustrating memory info
 /// payload indicates the source of prefetch operation
 /// @tparam L1 Is cache hint for L1 cache.
 /// @tparam L2 Is cache hint for L2 cache.
-/// @param payload Is the payload object with type payload_t. Contains all the information for prefetches.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for prefetches.
 template <cache_hint L1 = cache_hint::cached,
         cache_hint L2 = cache_hint::cached, typename payload_t>
 __XETLA_API typename std::enable_if_t<
@@ -129,14 +133,16 @@ tile_prefetch(payload_t &payload) {
     }
 }
 
-/// @brief Is prefetch data func, which data located in global memory is prefetched to
-/// cache, where has higher bandwidth. e.g. In gemm, prefetch next iteration data for mma
-/// consumption. This func is specicalized for block 1d scenario.
+/// @brief Is prefetch data func, which data located in global memory is
+/// prefetched to cache, where has higher bandwidth. e.g. In gemm, prefetch next
+/// iteration data for mma consumption. This func is specicalized for block 1d
+/// scenario.
 /// @tparam payload_t Is the mem_payload_t struct illustrating memory info
 /// payload indicates the source of prefetch operation
 /// @tparam L1 Is cache hint for L1 cache.
 /// @tparam L2 Is cache hint for L2 cache.
-/// @param payload Is the payload object with type payload_t. Contains all the information for prefetches.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for prefetches.
 template <cache_hint L1 = cache_hint::cached,
         cache_hint L2 = cache_hint::cached, typename payload_t>
 __XETLA_API typename std::enable_if_t<
@@ -168,11 +174,13 @@ tile_prefetch(payload_t &payload) {
 }
 
 /// @brief Is prefetch data func.
-/// Current shared local memory prefetch is not supported yet. Only used to keep the consistency with global prefetch.
+/// Current shared local memory prefetch is not supported yet. Only used to keep
+/// the consistency with global prefetch.
 /// @tparam payload_t Is the mem_payload_t struct illustrating memory info.
 /// @tparam L1 Is cache hint for L1 cache.
 /// @tparam L2 Is cache hint for L2 cache.
-/// @param payload Is the payload object with type payload_t. Contains all the information for prefetches.
+/// @param payload Is the payload object with type payload_t. Contains all the
+/// information for prefetches.
 template <cache_hint L1 = cache_hint::cached,
         cache_hint L2 = cache_hint::cached, typename payload_t>
 __XETLA_API typename std::enable_if_t<

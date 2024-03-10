@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -28,7 +28,8 @@ namespace gpu::xetla::group {
 /// @addtogroup xetla_epilogue
 /// @{
 
-/// @brief Is the epilogue functor specialized for epilogue_policy_quant_op and Xe architecture.
+/// @brief Is the epilogue functor specialized for epilogue_policy_quant_op and
+/// Xe architecture.
 template <typename dequant_op_t_, typename dtype_dequant_, typename tile_op_t_,
         typename quant_op_t_, typename tile_shape_, typename mem_desc_c_t_,
         gpu_arch arch_tag_>
@@ -81,8 +82,8 @@ public:
             : dequant_op_args(args.dequant_op_args)
             , tile_op_args(args.tile_op_args)
             , quant_op_args(args.quant_op_args) {}
-        // Be aware of the risks: Rule of three (copy constructor, copy assignment, destructor)
-        // Please check if you need to add self-define destructor
+        // Be aware of the risks: Rule of three (copy constructor, copy assignment,
+        // destructor) Please check if you need to add self-define destructor
         // ~arguments_t(){}
         inline arguments_t &operator=(const arguments_t &args) {
             this->dequant_op_args = args.dequant_op_args;
@@ -136,7 +137,8 @@ public:
     /// @tparam matAcc_t Is the type of the input tile.
     /// @param g Is the workgroup of the current tile.
     /// @param matAcc Is the input tile.
-    /// @param mem_desc_c Is the memory description of matC, including base, shape and coordinate.
+    /// @param mem_desc_c Is the memory description of matC, including base, shape
+    /// and coordinate.
     /// @param args Is the additional arguments for epilogue.
     /// @param slm_base Is the slm base address.
     /// @param nbarrier_base Is the named barrier base.
@@ -152,13 +154,13 @@ public:
         tile_op_t tile_op;
         quant_op_t quant_op;
         dequant_op_t dequant_op;
-        //dequantize
+        // dequantize
         mat_dequant_t mat_dequant;
         dequant_op(mat_dequant, matAcc, mem_desc_c.coord, args.dequant_op_args);
-        //post-op
+        // post-op
         tile_op(mat_dequant, mem_desc_c.coord, args.tile_op_args, slm_base,
                 nbarrier_base);
-        //quantize
+        // quantize
         matC_t matC;
         quant_op(matC, mat_dequant, mem_desc_c.coord, args.quant_op_args);
 

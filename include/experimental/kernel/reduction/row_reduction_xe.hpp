@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022-2023 Intel Corporation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*******************************************************************************/
+ * Copyright (c) 2022-2023 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 /// @file
 /// C++ API
@@ -28,9 +28,10 @@
 namespace gpu::xetla::kernel {
 
 /// @brief Is the row_reduction functor for Xe
-/// The idea is threads in group will cooperatively process matrix_m x wg_tile_n.
-/// Each time, each thread will load sg_tile_m x sg_tile_n data into register and do the reduction.
-/// A dynamic counter will be set in SLM to solve load imbalance problem.
+/// The idea is threads in group will cooperatively process matrix_m x
+/// wg_tile_n. Each time, each thread will load sg_tile_m x sg_tile_n data into
+/// register and do the reduction. A dynamic counter will be set in SLM to solve
+/// load imbalance problem.
 ///
 /// @tparam dtype_in_ Is the data type of input.
 /// @tparam dtype_out_ Is the data type of output.
@@ -77,7 +78,8 @@ struct xetla_row_reduction_t<dtype_in_, dtype_out_, dtype_acc_, reduction_attr_,
 
     static constexpr uint32_t max_simd_len = max_store_width_in_elem;
 
-    /// block_size_x should be power of 2 and tile_size_x should be divided by block_size_x
+    /// block_size_x should be power of 2 and tile_size_x should be divided by
+    /// block_size_x
     static constexpr uint32_t block_size_x
             = max_load_width_in_elem > tile_size_x
             ? tile_size_x
@@ -136,7 +138,8 @@ struct xetla_row_reduction_t<dtype_in_, dtype_out_, dtype_acc_, reduction_attr_,
     };
 
     /// @brief Main execution function for row reduction.
-    /// The basic process is 1) load data -> reduction 2) data sharing via SLM -> reduction 3) write out.
+    /// The basic process is 1) load data -> reduction 2) data sharing via SLM ->
+    /// reduction 3) write out.
     ///
     /// @param ei
     /// @param args Includes base pointer and matrix size.
