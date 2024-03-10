@@ -241,11 +241,9 @@ void kernel_run(auto nd_range, auto validate_result) {
 /// @example example usage in /examples/01 or /examples/02
 template <template <gpu_arch> class F>
 class dispatch_arch {
-    using T_RET = std::invoke_result_t<decltype(F<gpu_arch::Xe>::exec)>;
-
 public:
     template <typename... Args>
-    static T_RET exec(Args &&...args) {
+    static void exec(Args &&...args) {
         sycl::device device;
         if (!device.has(aspect::ext_intel_device_id))
             throw std::runtime_error("Can not get device ID");

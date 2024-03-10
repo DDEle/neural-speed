@@ -43,11 +43,28 @@ if (${LOG} STREQUAL "on")
     add_definitions(-DLOG_PRINT)
 endif ()
 
-add_compile_options(-fsycl)
+set(SYCL_TARGETS
+# -fsycl-targets=intel_gpu_pvc
+-fsycl-targets=intel_gpu_dg2_g10
+)
+add_compile_options(
+    -fsycl
+    -fsycl-device-code-split=per_kernel
+    ${SYCL_TARGETS})
 add_link_options(-fsycl)
 if(UNIX)
-    add_compile_options(-fp-model=precise -Wall -Wextra -Werror)
-    add_link_options(-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm)
+    add_compile_options(-fp-model=precise -Wall -Wextra)
+    add_link_options(
+        -lmkl_intel_lp64
+        -lmkl_sequential
+        -lmkl_core
+        -lpthread
+        -lm
+        -fsycl-max-parallel-link-jobs=4
+        -fsycl-device-code-split=per_kernel
+        ${SYCL_TARGETS}
+        # -Xs "-device \"pvc,xe-hpg\""
+    )
     link_libraries(-lgtest -lgtest_main)
 else() # Windows
     add_compile_options(/EHsc)

@@ -487,7 +487,34 @@ void sdp_fwd_run(uint32_t iter, uint32_t warmup = 10) {
         for (uint32_t i = 0; i < iter + warmup; i++) {
             if (i >= warmup) { prof.cpu_start(); }
             auto gpu_event = queue.submit([&](handler &cgh) {
-                cgh.parallel_for(nd_range, gpu_kernel);
+                cgh.parallel_for(nd_range, [=](auto i) {
+                    namespace syclex = sycl::ext::oneapi::experimental;
+                    if constexpr (arch_tag == gpu_arch::Dg2) {
+                        syclex::if_architecture_is<
+                                syclex::architecture::intel_gpu_acm_g10>([&] {
+                            gpu_kernel(i);
+                        }).otherwise([&i]() {
+                            if (i.get_global_linear_id()
+                                            + i.get_group_linear_id()
+                                    == 0)
+                                sycl::ext::oneapi::experimental::printf(
+                                        "Unsupported GPU arch!\n");
+                        });
+                    }
+                    if constexpr (arch_tag == gpu_arch::Xe) {
+                        syclex::if_architecture_is<
+                                syclex::architecture::intel_gpu_pvc>([&] {
+                            gpu_kernel(i);
+                        }).otherwise([&i]() {
+                            if (i.get_global_linear_id()
+                                            + i.get_group_linear_id()
+                                    == 0) {
+                                sycl::ext::oneapi::experimental::printf(
+                                        "Unsupported GPU arch!\n");
+                            }
+                        });
+                    }
+                });
             });
             gpu_event.wait();
 
