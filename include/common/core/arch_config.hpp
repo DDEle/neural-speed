@@ -108,9 +108,9 @@ struct mma_attr_t<gpu_arch::Dg2> {
 
 template <>
 struct mma_attr_t<gpu_arch::Igpu> {
-    static constexpr uint32_t mma_m_in_elem = 8;
-    static constexpr uint32_t mma_n_in_elem = 8;
-    static constexpr uint32_t mma_k_in_bytes = 32;
+    static constexpr uint32_t mma_m_in_elem = 0;
+    static constexpr uint32_t mma_n_in_elem = 0;
+    static constexpr uint32_t mma_k_in_bytes = 0;
 };
 
 template <grf_mode grf_num_mode, gpu_arch arch_tag>

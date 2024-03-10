@@ -23,7 +23,7 @@
 
 namespace gpu::xetla::group {
 
-enum quant_mode { S4_ASYM, S4_FULLRANGE_NO_ZP };
+enum quant_mode : uint8_t { S4_ASYM, S4_FULLRANGE_NO_ZP };
 
 /// @brief Compute policy for unaligned shape and xmx engine.
 /// @tparam compute_attr_ Is compute-related attributes.
@@ -62,7 +62,8 @@ struct compute_policy_int4_dequantize<compute_attr_, perf_tuning_knob_,
 
     static constexpr bool is_int4_matB_policy = true;
 
-    static constexpr uint32_t block_size_x_b = 16;
+    static constexpr uint32_t block_size_x_b
+            = arch_tag == gpu_arch::Dg2 ? 8 : 16;
     static constexpr uint32_t block_bytes_y_b = 32;
     static_assert(block_bytes_x_a == block_bytes_y_b,
             "mat_a x need to match with mat_b y");

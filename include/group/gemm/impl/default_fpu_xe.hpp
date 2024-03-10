@@ -130,7 +130,8 @@ private:
             block_size_x_a, block_size_y_a, reg_layout_a>;
     using matA_t = subgroup::tile_t<dtype_a, matA_tile_desc_t>;
     using matA_payload_t = subgroup::mem_payload_t<mem_desc_a_t,
-            matA_tile_desc_t, msg_type::block_2d, arch_tag>;
+            matA_tile_desc_t,
+            is_local_a ? msg_type::scatter : msg_type::block_2d, arch_tag>;
     // the tile size in register may bigger than in memory because of the padding
     using matA_acc_t = subgroup::tile_t<dtype_mma_a, matA_tile_desc_t>;
     using matA_prefetch_payload_t = subgroup::prefetch_payload_t<mem_desc_a_t,
@@ -142,7 +143,8 @@ private:
             block_size_x_b, block_size_y_b, reg_layout_b>;
     using matB_t = subgroup::tile_t<dtype_b, matB_tile_desc_t>;
     using matB_payload_t = subgroup::mem_payload_t<mem_desc_b_t,
-            matB_tile_desc_t, msg_type::block_2d, arch_tag>;
+            matB_tile_desc_t,
+            is_local_b ? msg_type::scatter : msg_type::block_2d, arch_tag>;
     using matB_acc_t = subgroup::tile_t<dtype_mma_b, matB_tile_desc_t>;
     using matB_prefetch_payload_t = subgroup::prefetch_payload_t<mem_desc_b_t,
             subgroup::tile_desc_t<tile_size_x_b, tile_size_y_b, 1, 1>, 1,

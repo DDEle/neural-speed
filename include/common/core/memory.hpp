@@ -22,6 +22,7 @@
 #include <common/core/base_ops.hpp>
 #include <common/core/base_types.hpp>
 #include <common/core/common.hpp>
+#include <common/core/explicit_conv.hpp>
 #include <common/utils/limitation.hpp>
 
 namespace gpu::xetla {
