@@ -371,10 +371,10 @@ private:
         for (uint32_t i = 0; i < num_block_y * num_block_x; i++) {
             auto dst_blk = matA.reg.xetla_select<matA_t::block_elems, 1>(
                     i * matA_t::block_elems);
-            xetla_vector<float, matA_t::block_elems> trans_blk;
+            xetla_vector<dtype_a, matA_t::block_elems> trans_blk;
             for (uint32_t j = 0; j < block_size_y_a; j++) {
-                trans_blk.xetla_select<block_size_y_a, block_size_x_a>(j)
-                        = dst_blk.xetla_select<block_size_y_a, 1>(
+                trans_blk.xetla_select<block_size_x_a, block_size_y_a>(j)
+                        = dst_blk.xetla_select<block_size_x_a, 1>(
                                 j * block_size_x_a);
             }
             dst_blk = trans_blk;

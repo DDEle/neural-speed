@@ -1,19 +1,17 @@
-// Kernel template in a seperate file so it can be tested and debugged
-// (with xxx) individually
 
 #pragma once
-#include <cstdint>
+/*
+Fused Multi-Head Attention Forward
+
+This is an implementation of the Flash Attention algorithm
+(see: Dao et al., https://arxiv.org/pdf/2205.14135v2.pdf)
+*/
 #include <limits>
+#include "fmha_forward_policy.h"
 #include "fmha_utils.h"
 
-namespace gpu::xetla::fmha {
-namespace {
-using namespace sycl;
-using namespace gpu::xetla;
-using namespace gpu::xetla::group;
-using namespace gpu::xetla::kernel;
-using namespace gpu::xetla::subgroup;
-
+namespace gpu::xetla {
+namespace fmha {
 template <
     typename fmha_policy,
     typename scalar_t,
@@ -22,37 +20,45 @@ template <
     bool kUseBias,
     bool kIsCausal,
     bool kSeqLast,
-    bool kIsTraining>
-class fmha_forward_causal_strided_t {
+    bool kIsTraining,
+    bool kIsDropout>
+class fmha_forward_t {
  public:
-  static_assert((!kIsTraining), "training is not supported yet");
-
   using accum_t = float;
 
   struct arguments_t {
     // Input tensors
-    scalar_t* Q_ptr; // [B, N, F, H] - query
-    scalar_t* K_ptr; // [B, N, T, H] - key
-    scalar_t* V_ptr; // [B, N, T, H] - value
+    scalar_t* Q_ptr; // [B, F, N, H] - query
+    scalar_t* K_ptr; // [B, T, N, H] - key
+    scalar_t* V_ptr; // [B, T, N, H] - value
     scalar_t* A_ptr = nullptr; // [B, N, 1, T] - Alibi
-    scalar_t* B_ptr = nullptr; // [B, 1, F, T] - bias
+    scalar_t* B_ptr = nullptr; // [1/B, 1/N, 1/F, M] - bias
     uint8_t* Dp_ptr = nullptr; // [B, N, F, T] - dropout mask
     // Output tensor
-    scalar_t* O_ptr; // raw: [B, N, F, H]; permute: [B, F, N, H] - output
+    scalar_t* O_ptr; // raw: [B, F, N, H]; permute: [B, N, F, H] - output
+    accum_t* L_ptr; // logsum softmax: [B, N, F]
     // Dimension size
     uint32_t uB;
     uint32_t uN;
+    uint32_t uNkv;
     uint32_t uH;
     uint32_t uF;
     uint32_t uT;
     // Softmax scale is the reciprocal square root of head size by default
     accum_t sm_scale;
 
+    uint32_t bias_strideB;
+    uint32_t bias_strideN;
+    uint32_t bias_strideF;
+
     // Dropout scale is computed from dropout prob
     accum_t dp_prob;
     accum_t dp_scale;
     uint32_t uAT;
     uint32_t uMT;
+    uint64_t seed;
+    uint64_t offset;
+    bool is_bias_add;
 
     inline arguments_t() = default;
     inline arguments_t(
@@ -63,15 +69,22 @@ class fmha_forward_causal_strided_t {
         scalar_t* bias,
         uint8_t* dropout,
         scalar_t* out,
+        accum_t* logsumsoftmax,
         uint32_t num_batches,
         uint32_t num_heads,
+        uint32_t num_kv_heads,
         uint32_t head_size,
         uint32_t num_queries,
         uint32_t num_keys,
+        uint32_t bias_strideB,
+        uint32_t bias_strideN,
+        uint32_t bias_strideF,
         accum_t sm_scale,
         accum_t dropout_prob,
         uint32_t alibi_padded_block_size,
-        uint32_t attn_mask_padded_block_size)
+        uint32_t attn_mask_padded_block_size,
+        uint64_t seed_t,
+        uint64_t offset_t)
         : Q_ptr(query),
           K_ptr(key),
           V_ptr(value),
@@ -79,16 +92,24 @@ class fmha_forward_causal_strided_t {
           B_ptr(bias),
           Dp_ptr(dropout),
           O_ptr(out),
+          L_ptr(logsumsoftmax),
           uB(num_batches),
           uN(num_heads),
+          uNkv(num_kv_heads),
           uH(head_size),
           uF(num_queries),
           uT(num_keys),
           sm_scale(sm_scale),
+          bias_strideB(bias_strideB),
+          bias_strideN(bias_strideN),
+          bias_strideF(bias_strideF),
           dp_prob(dropout_prob),
           dp_scale(1.f / (1.f - dropout_prob)),
           uAT(alibi_padded_block_size),
-          uMT(attn_mask_padded_block_size) {}
+          uMT(attn_mask_padded_block_size),
+          seed(seed_t),
+          offset(offset_t),
+          is_bias_add(bias_strideF == 0) {}
   };
 
  private:
@@ -99,7 +120,12 @@ class fmha_forward_causal_strided_t {
 
   using comp_attr = group::compute_attr_t<scalar_t, scalar_t, accum_t>;
   using knobs = group::perf_tuning_knob_t<accum_step, stages, sync_freq>;
-  using compute_policy = std::conditional_t<
+  using compute_policy_BrBc = std::conditional_t<
+      (arch_tag >= gpu_arch::Dg2),
+      group::compute_policy_default_xmx<comp_attr, knobs, arch_tag>,
+      group::compute_policy_default_fpu<comp_attr, knobs, arch_tag>>;
+  // TODO: add k slicing
+  using compute_policy_BrBm = std::conditional_t<
       (arch_tag >= gpu_arch::Dg2),
       group::compute_policy_default_xmx<comp_attr, knobs, arch_tag>,
       group::compute_policy_default_fpu<comp_attr, knobs, arch_tag>>;
@@ -143,6 +169,9 @@ class fmha_forward_causal_strided_t {
   using mem_desc_Ai_t =
       mem_desc_t<scalar_t, mem_layout::row_major, mem_space::global>;
 
+  using mem_desc_Li_t =
+      mem_desc_t<accum_t, mem_layout::row_major, mem_space::global>;
+
   // ------------------- // Slm and nbarrier // ------------------- //
   static constexpr uint32_t slm_size_Qi = kBr * kHm * sizeof(scalar_t);
   static constexpr uint32_t slm_size_Pij = kBr * kBc * sizeof(scalar_t);
@@ -154,6 +183,15 @@ class fmha_forward_causal_strided_t {
   static constexpr uint32_t softmax_slm = Pij_slm + slm_size_Pij;
 
   static constexpr uint32_t nbarrier_cnt = (wg_size_x > 1) ? wg_size_y : 0;
+
+  using gemm_Sij_t = group::gemm_t<
+      compute_policy_BrBc,
+      tile_shape_BrBc,
+      mem_desc_Qi_L_t,
+      mem_desc_Kj_T_t>;
+  using matAccSij_t = typename gemm_Sij_t::matAcc_t;
+  using dropout_t = dropout_fwd_t<matAccSij_t::tile_elems>;
+
   // ======================== // Context // ======================= //
 
   /// @brief Used to store variables in the flash mha loops
@@ -176,6 +214,8 @@ class fmha_forward_causal_strided_t {
     mem_desc_Bij_t mem_desc_Bij;
     mem_desc_Oi_t mem_desc_Oi;
     mem_desc_Ai_t mem_desc_Ai;
+    mem_desc_Li_t mem_desc_Li;
+    dropout_t dropout_op;
 
     inline context_t() = default;
 
@@ -239,6 +279,12 @@ class fmha_forward_causal_strided_t {
             {start_acc, start_y});
       }
 
+      int32_t start_x_ml = item.get_group(1) * kBr + sg_idy * kSgBr;
+      int32_t start_y_ml = gid;
+      mem_desc_Li.init(
+          args.L_ptr,
+          {args.uF, args.uB * args.uN, args.uF},
+          {start_x_ml, start_y_ml});
       mem_desc_Qi_L.init(Qi_slm, {kHm, kBr, kHm}, {0, 0});
       mem_desc_Pij_L.init(Pij_slm, {kBc, kBr, kBc}, {0, 0});
     }
@@ -251,6 +297,8 @@ class fmha_forward_causal_strided_t {
       uint32_t gid = item.get_group(0);
       uint32_t batch_id = gid / args.uN; // get batch idx
       uint32_t head_id = gid % args.uN; // get head idx
+      uint32_t head_id_kv =
+          head_id / (args.uN / args.uNkv); // get head idx for kv
 
       // TODO: what's this startT for
 
@@ -261,8 +309,8 @@ class fmha_forward_causal_strided_t {
         end_x = end_x > boundary_x ? boundary_x : end_x;
 
         // XXX: code-gen crash
-        uint32_t b_stride = args.uN * args.uH;
-        int32_t start_acc = batch_id * b_stride + head_id * args.uH;
+        uint32_t b_stride = args.uNkv * args.uH;
+        int32_t start_acc = batch_id * b_stride + head_id_kv * args.uH;
         uint32_t end_y = start_acc + args.uH;
 
         mem_desc_Kj_T.init(
@@ -279,15 +327,15 @@ class fmha_forward_causal_strided_t {
         uint32_t boundary_x = (batch_id + 1) * args.uT;
         end_x = end_x > boundary_x ? boundary_x : end_x;
 
-        int32_t start_acc = head_id * args.uH;
+        int32_t start_acc = head_id_kv * args.uH;
 
         mem_desc_Kj_T.init(
             args.K_ptr,
-            {end_x, args.uH * args.uN, args.uH * args.uN},
+            {end_x, args.uH * args.uNkv, args.uH * args.uNkv},
             {start_x, start_acc});
         mem_desc_Vj.init(
             args.V_ptr,
-            {args.uH * args.uN, end_x, args.uH * args.uN},
+            {args.uH * args.uNkv, end_x, args.uH * args.uNkv},
             {start_acc, start_x});
       }
 
@@ -311,9 +359,13 @@ class fmha_forward_causal_strided_t {
         uint32_t boundary_x = args.uMT;
         end_x = end_x > boundary_x ? boundary_x : end_x;
 
-        int32_t start_y = batch_id * args.uF + item.get_group(1) * kBr;
-        uint32_t end_y = start_y + kBr;
-        uint32_t boundary_y = (batch_id + 1) * args.uF;
+        int32_t offset =
+            (batch_id * args.bias_strideB + head_id * args.bias_strideN) /
+            args.uMT;
+        int32_t start_y =
+            offset + (args.is_bias_add ? 0 : item.get_group(1) * kBr);
+        uint32_t end_y = args.is_bias_add ? start_y : start_y + kBr;
+        uint32_t boundary_y = args.is_bias_add ? start_y : offset + args.uF;
         end_y = end_y > boundary_y ? boundary_y : end_y;
 
         mem_desc_Bij.init(
@@ -333,6 +385,15 @@ class fmha_forward_causal_strided_t {
         mem_desc_Bij.init(
             args.B_ptr, {end_x, 1, args.uMT * args.uB}, {start_x, 0});
       }
+
+      if constexpr (kIsDropout) {
+        int coord_y = item.get_group(1) * kBr + sg_idy * kSgBr;
+        int coord_x = startT + sg_idx * kSgBc;
+        uint64_t sg_subseq = uint64_t(coord_y) << 32 | uint64_t(coord_x);
+        uint32_t threshold = uint32_t(args.dp_prob * float(4294967296));
+        dropout_op.init(
+            args.seed, sg_subseq, args.offset, threshold, args.dp_scale);
+      }
     }
   };
 
@@ -340,25 +401,16 @@ class fmha_forward_causal_strided_t {
 
   // ======================= // gemm_Sij // ======================= //
   // Define kernel to compute Sij = Qi x Kj.T
-  using brgemm_Sij_t = group::
-      gemm_t<compute_policy, tile_shape_BrBc, mem_desc_Qi_L_t, mem_desc_Kj_T_t>;
-  using matAccSij_t = typename brgemm_Sij_t::matAcc_t;
-
   /// @brief gemm_Sij is used to compute Sij = Qi x Kj.T
   /// # [Br,H] x [H,Bc] = [Br,Bc]
   inline void gemm_Sij(matAccSij_t& matAccSij, arguments_t& args) {
-    using brgemm_args_t = typename brgemm_Sij_t::arguments_t;
+    using gemm_args_t = typename gemm_Sij_t::arguments_t;
 
     // Gemm to comput Sij
-    brgemm_Sij_t brgemm;
+    gemm_Sij_t gemm;
     uint32_t loop_count = (args.uH + accum_step - 1) / accum_step;
-    brgemm_args_t brgemm_args(ctx.mem_desc_Qi_L, ctx.mem_desc_Kj_T, loop_count);
-    brgemm(
-        ctx.g,
-        matAccSij,
-        brgemm_args,
-        0,
-        /* nbarrier_base */ nbarrier_cnt);
+    gemm_args_t gemm_args(ctx.mem_desc_Qi_L, ctx.mem_desc_Kj_T, loop_count);
+    gemm(ctx.g, matAccSij, gemm_args, 0, /* nbarrier_base */ nbarrier_cnt);
 
     // Multiply by softmax scaling factor
     // bmm * alpha
@@ -366,9 +418,7 @@ class fmha_forward_causal_strided_t {
 
     // + beta * alibi
     if constexpr (kUseAlibi) {
-      using alibi_op_t = subgroup::bias_add_op_t<
-          mem_desc_t<scalar_t, mem_layout::row_major, mem_space::global>,
-          arch_tag>;
+      using alibi_op_t = bias_add_op_t<scalar_t, arch_tag>;
       using alibi_args_t = typename alibi_op_t::arguments_t;
 
       int32_t tile_offset_x = ctx.sg_idx * kSgBc;
@@ -382,24 +432,32 @@ class fmha_forward_causal_strided_t {
 
     // Add attn_mask if needed
     if constexpr (kUseBias && !kIsCausal) {
-      using bias_op_t =
-          subgroup::elemwise_reduce_op_t<reduce_op::sum, scalar_t, arch_tag>;
-      using bias_args_t = typename bias_op_t::arguments_t;
+      if (args.is_bias_add) {
+        using mask_op_t = bias_add_op_t<scalar_t, arch_tag>;
+        using mask_args_t = typename mask_op_t::arguments_t;
+        int32_t tile_offset_x = ctx.sg_idx * kSgBc;
+        ctx.mem_desc_Bij.update_coord_x(tile_offset_x);
+        mask_op_t mask_op;
+        mask_args_t mask_args(ctx.mem_desc_Bij.base, ctx.mem_desc_Bij.shape);
+        mask_op(matAccSij, ctx.mem_desc_Bij.coord, mask_args);
+      } else {
+        using mask_op_t =
+            subgroup::elemwise_reduce_op_t<reduce_op::sum, scalar_t, arch_tag>;
+        using mask_args_t = typename mask_op_t::arguments_t;
 
-      int32_t tile_offset_x = ctx.sg_idx * kSgBc;
-      int32_t tile_offset_y = ctx.sg_idy * kSgBr;
-      ctx.mem_desc_Bij.update_coord(tile_offset_x, tile_offset_y);
+        int32_t tile_offset_x = ctx.sg_idx * kSgBc;
+        int32_t tile_offset_y = ctx.sg_idy * kSgBr;
+        ctx.mem_desc_Bij.update_coord(tile_offset_x, tile_offset_y);
 
-      bias_op_t bias_op;
-      bias_args_t bias_args(ctx.mem_desc_Bij.base, ctx.mem_desc_Bij.shape);
-      bias_op(matAccSij, ctx.mem_desc_Bij.coord, bias_args);
+        mask_op_t mask_op;
+        mask_args_t mask_args(ctx.mem_desc_Bij.base, ctx.mem_desc_Bij.shape);
+        mask_op(matAccSij, ctx.mem_desc_Bij.coord, mask_args);
+      }
     }
 
     // Add attn_mask if needed
     if constexpr (kUseBias && kIsCausal) {
-      using bias_op_t = subgroup::bias_add_op_t<
-          mem_desc_t<scalar_t, mem_layout::row_major, mem_space::global>,
-          arch_tag>;
+      using bias_op_t = bias_add_op_t<scalar_t, arch_tag>;
       using bias_args_t = typename bias_op_t::arguments_t;
 
       int32_t tile_offset_x = ctx.sg_idx * kSgBc;
@@ -413,12 +471,15 @@ class fmha_forward_causal_strided_t {
   }
   // ======================= // gemm_Oi // ======================= //
   // Define kernel to compute Oi += Pij x Vj
-  using brgemm_Oi_t = group::
-      gemm_t<compute_policy, tile_shape_BrHm, mem_desc_Pij_L_t, mem_desc_Vj_t>;
-  using matAccOi_t = typename brgemm_Oi_t::matAcc_t;
-  using matOi_t = tile_t<
+  using gemm_Oi_t = group::gemm_t<
+      compute_policy_BrBm,
+      tile_shape_BrHm,
+      mem_desc_Pij_L_t,
+      mem_desc_Vj_t>;
+  using matAccOi_t = typename gemm_Oi_t::matAcc_t;
+  using matOi_t = subgroup::tile_t<
       scalar_t,
-      tile_desc_t<
+      subgroup::tile_desc_t<
           matAccOi_t::tile_size_x,
           matAccOi_t::tile_size_y,
           matAccOi_t::block_size_x,
@@ -431,21 +492,16 @@ class fmha_forward_causal_strided_t {
       matAccOi_t& matAccOi,
       arguments_t& args,
       uint32_t startT) {
-    using brgemm_args_t = typename brgemm_Oi_t::arguments_t;
+    using gemm_args_t = typename gemm_Oi_t::arguments_t;
 
     uint32_t remainT = args.uT - startT;
     uint32_t boundary_k = remainT > kBc ? kBc : remainT;
     uint32_t loop_count = (boundary_k + accum_step - 1) / accum_step;
 
     // Gemm to comput Oi
-    brgemm_Oi_t brgemm;
-    brgemm_args_t brgemm_args(ctx.mem_desc_Pij_L, ctx.mem_desc_Vj, loop_count);
-    brgemm(
-        ctx.g,
-        matAccOi,
-        brgemm_args,
-        0,
-        /* nbarrier_base */ nbarrier_cnt);
+    gemm_Oi_t gemm;
+    gemm_args_t gemm_args(ctx.mem_desc_Pij_L, ctx.mem_desc_Vj, loop_count);
+    gemm(ctx.g, matAccOi, gemm_args, 0, /* nbarrier_base */ nbarrier_cnt);
   }
 
   // ====================== // apply_mask // ====================== //
@@ -519,17 +575,20 @@ class fmha_forward_causal_strided_t {
     l_new += ctx.softmax_l;
 
     // rescale operands of matmuls
-    subgroup::tile_broadcast_op<subgroup::tile_div, matAccSij_t>(
-        matAccSij, l_new);
-    xetla_vector<accum_t, kSgBr> o_scale = l_new / ctx.softmax_l;
-    subgroup::tile_broadcast_op<subgroup::tile_div, matAccOi_t>(
-        matAccOi, o_scale);
+    xetla_vector<accum_t, kSgBr> o_scale =
+        xetla_exp<accum_t, kSgBr>(ctx.softmax_m - m_new);
+
+    subgroup::tile_broadcast_op<tile_mul, matAccOi_t>(matAccOi, o_scale);
     // update m and l for the next step
     ctx.softmax_m = m_new;
     ctx.softmax_l = l_new;
 
     if constexpr (kIsTraining) {
       // TODO: save m and l to global
+    }
+
+    if constexpr (kIsDropout) {
+      matAccSij.reg = ctx.dropout_op.template process<float>(matAccSij.reg);
     }
 
     // save Pij to local memory
@@ -543,12 +602,39 @@ class fmha_forward_causal_strided_t {
     if constexpr (wg_size_x > 1)
       ctx.nbarrier.arrive_wait();
   }
-  // ==================== // raw_store_Oi // ====================== //
 
-  /// @brief store raw Oi to global memory. [B,N,F,H]
-  inline void raw_store_Oi(
+  // ==================== // store_logsumsoftmax // ====================== //
+
+  /// @brief store logsumsoftmax to global memory. [B,N,F]
+  inline void store_for_backward([[maybe_unused]] const arguments_t& args) {
+    // save m and l to global
+    if constexpr (!kIsTraining) {
+      return;
+    }
+    using store_desc =
+        subgroup::tile_desc_t<kSgBr, 1, kSgBr, 1, reg_layout::tiled>;
+    using store_tile_t = subgroup::tile_t<accum_t, store_desc>;
+    // Note: use block_2d store as only block_2d supports boundary check
+    using store_payload_t = subgroup::mem_payload_t<
+        mem_desc_t<accum_t, mem_layout::row_major, mem_space::global>,
+        store_desc,
+        msg_type::block_2d,
+        arch_tag>;
+    store_tile_t mat_store;
+    store_payload_t store_payload(ctx.mem_desc_Li);
+    mat_store.reg = ctx.softmax_m + sycl::ext::intel::esimd::log(ctx.softmax_l);
+    if (ctx.sg_idx == 0) {
+      subgroup::tile_store(mat_store, store_payload);
+    }
+  }
+  // == == == == == == == == == == // raw_store_Oi // ====================== //
+
+  /// @brief store raw Oi to global memory. [B,F,N,H]
+  inline void rescale_then_store_Oi(
       matAccOi_t& matAccOi,
       [[maybe_unused]] arguments_t& args) {
+    subgroup::tile_broadcast_op<tile_mul, matAccOi_t>(
+        matAccOi, 1 / ctx.softmax_l);
     using epilogue_t = group::epilogue_t<
         group::epilogue_policy_default<arch_tag>,
         tile_shape_BrHm,
@@ -559,7 +645,7 @@ class fmha_forward_causal_strided_t {
 
   // ================== // permute_store_Oi // ==================== //
 
-  /// @brief permuted store Oi to global memory. [B,F,N,H]
+  /// @brief permuted store Oi to global memory. [B,N,F,H]
   inline void permute_store_Oi(
       nd_item<3>& item,
       matAccOi_t& matAccOi,
@@ -580,6 +666,7 @@ class fmha_forward_causal_strided_t {
     uint32_t offset_height = b * args.uN * args.uF + f * args.uN + n;
 
     if constexpr (arch_tag != gpu_arch::Xe) {
+      // offset for curr work item
       const uint32_t O_offset = offset_height * args.uH + h;
       const auto ld_c = args.uN * args.uH;
 
@@ -630,7 +717,7 @@ class fmha_forward_causal_strided_t {
 
   /// @brief preload_Qi is used to load Qi from global to local memory.
   inline void preload_Qi([[maybe_unused]] arguments_t& args) {
-    using matQi_tile_desc_t = typename brgemm_Oi_t::matAcc_tile_desc_t;
+    using matQi_tile_desc_t = typename gemm_Oi_t::matAcc_tile_desc_t;
     using matQi_t = subgroup::tile_t<scalar_t, matQi_tile_desc_t>;
     using matQi_load_t = subgroup::mem_payload_t<
         mem_desc_t<scalar_t, mem_desc_Qi_t::layout, mem_desc_Qi_t::space>,
@@ -669,8 +756,8 @@ class fmha_forward_causal_strided_t {
   /// Users query and get a named_barrier id consumption count in compile time.
   /// @return The count of named barriers required.
   inline static constexpr uint32_t get_barrier_count() {
-    constexpr uint32_t barrier_count_Sij = brgemm_Sij_t::barrier_count;
-    constexpr uint32_t barrier_count_Oi = brgemm_Oi_t::barrier_count;
+    constexpr uint32_t barrier_count_Sij = gemm_Sij_t::barrier_count;
+    constexpr uint32_t barrier_count_Oi = gemm_Oi_t::barrier_count;
     constexpr uint32_t count =
         std::max(barrier_count_Sij, barrier_count_Oi) + nbarrier_cnt;
     static_assert(
@@ -752,12 +839,9 @@ class fmha_forward_causal_strided_t {
     }
 
     // Store output to global
-#if _RAW_OUTPUT
-    raw_store_Oi(matAccOi, args);
-#else
-    permute_store_Oi(item, matAccOi, args);
-#endif
+    rescale_then_store_Oi(matAccOi, args);
+    store_for_backward(args);
   }
 }; // fmha_forward_t
-} // namespace
-} // namespace gpu::xetla::fmha
+} // namespace fmha
+} // namespace gpu::xetla
