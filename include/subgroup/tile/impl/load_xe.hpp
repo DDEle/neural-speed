@@ -419,7 +419,7 @@ tile_load(tile_t &tile, payload_t &payload) {
     using load_dtype = typename payload_t::mem_dtype;
     constexpr uint32_t num_channel = payload_t::num_channel;
     constexpr uint32_t load_elems = num_channel * payload_t::simd_exec_size;
-    constexpr uint32_t scale_factor = payload_t::scale_factor;
+    constexpr uint32_t pack_factor = payload_t::pack_factor;
 
 #pragma unroll
     for (uint32_t i = 0; i < tile_desc::tile_size_y / tile_desc::block_size_y;
@@ -466,12 +466,12 @@ tile_load(tile_t &tile, payload_t &payload) {
                                         payload_t::simd_exec_size,
                                         payload_t::num_channel>(iii);
                     }
-                    reg_sub.xetla_select<load_elems * scale_factor, 1>(
+                    reg_sub.xetla_select<load_elems * pack_factor, 1>(
                                    sub_block_y * tile_desc::block_size_x)
                             .xetla_format<load_dtype>()
                             = reg_tmp_trans;
                 } else {
-                    reg_sub.xetla_select<load_elems * scale_factor, 1>(
+                    reg_sub.xetla_select<load_elems * pack_factor, 1>(
                                    sub_block_y * tile_desc::block_size_x)
                             .xetla_format<load_dtype>()
                             = reg_tmp;
@@ -479,7 +479,11 @@ tile_load(tile_t &tile, payload_t &payload) {
             }
         }
     }
-    XETLA_PRINT<payload_t::mem_transform>();
+
+    if constexpr (payload_t::trans) {
+        SW_BARRIER();
+        tile_transpose(tile);
+    }
     if constexpr (payload_t::mem_transform) {
         SW_BARRIER();
         vnni_convert(tile);

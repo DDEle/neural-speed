@@ -24,9 +24,9 @@ constexpr int ITER = 1;
 class test1 {
 public:
     //Extract the parameters required by different test cases
-    static constexpr size_t mat_m = 32;
-    static constexpr size_t mat_n = 4096 * 3;
-    static constexpr size_t mat_k = 4096 * 3;
+    static constexpr size_t mat_m = 1;
+    static constexpr size_t mat_n = 128;
+    static constexpr size_t mat_k = 128;
     static constexpr size_t wg_m = 16;
     static constexpr size_t wg_n = 16;
     static constexpr size_t sg_m = 16;
@@ -34,9 +34,30 @@ public:
     static constexpr size_t sg_k = 16;
     static constexpr size_t dequant_s = 16;
 
-    static constexpr size_t local_kslicing = 8;
+    static constexpr size_t local_kslicing = 1;
     static constexpr size_t global_kslicing = 1;
     static constexpr mem_layout layout_a = mem_layout::row_major;
+    static constexpr mem_layout layout_b = mem_layout::row_major;
+    using data_type_a = fp16;
+    using data_type_b = int4x2;
+    using data_type_c = fp16;
+};
+class test2 {
+public:
+    //Extract the parameters required by different test cases
+    static constexpr size_t mat_m = 32;
+    static constexpr size_t mat_n = 128;
+    static constexpr size_t mat_k = 128;
+    static constexpr size_t wg_m = 16;
+    static constexpr size_t wg_n = 16;
+    static constexpr size_t sg_m = 16;
+    static constexpr size_t sg_n = 16;
+    static constexpr size_t sg_k = 16;
+    static constexpr size_t dequant_s = 16;
+
+    static constexpr size_t local_kslicing = 1;
+    static constexpr size_t global_kslicing = 1;
+    static constexpr mem_layout layout_a = mem_layout::col_major;
     static constexpr mem_layout layout_b = mem_layout::row_major;
     using data_type_a = fp16;
     using data_type_b = int4x2;
@@ -107,27 +128,6 @@ public:
     using data_type_c = fp16;
 };
 
-class test2 {
-public:
-    //Extract the parameters required by different test cases
-    static constexpr size_t mat_m = 1;
-    static constexpr size_t mat_n = 4096;
-    static constexpr size_t mat_k = 22016;
-    static constexpr size_t wg_m = 8;
-    static constexpr size_t wg_n = 128;
-    static constexpr size_t sg_m = 8;
-    static constexpr size_t sg_n = 16;
-    static constexpr size_t sg_k = 16;
-    static constexpr size_t dequant_s = 128;
-
-    static constexpr size_t local_kslicing = 4;
-    static constexpr size_t global_kslicing = 1;
-    static constexpr mem_layout layout_a = mem_layout::row_major;
-    static constexpr mem_layout layout_b = mem_layout::row_major;
-    using data_type_a = fp16;
-    using data_type_b = int4x2;
-    using data_type_c = fp16;
-};
 class qkv1 {
 public:
     //Extract the parameters required by different test cases
@@ -516,6 +516,9 @@ void dequantize_gemm_run(int iter) {
         A_h[i] = random_float();
 #ifdef UT_DEBUG
         A_h[i] = 1.f;
+        A_h[i] = layout_a == mem_layout::row_major
+                ? (i % matrix_k + i / matrix_k * 100)
+                : (i % matrix_m + i / matrix_m * 100);
 #endif
     }
 
@@ -669,7 +672,7 @@ TYPED_TEST_P(dequantize_gemm_test, esimd) {
 }
 
 REGISTER_TYPED_TEST_SUITE_P(dequantize_gemm_test, esimd);
-using tests = ::testing::Types<test1>;
+using tests = ::testing::Types<test1, test2>;
 // using tests = ::testing::Types<qkv1, qkv2, qkv3, qkv4, qkv5, qkv6, qkv7, qkv8,
 //         qkv9, qkv10>;
 
