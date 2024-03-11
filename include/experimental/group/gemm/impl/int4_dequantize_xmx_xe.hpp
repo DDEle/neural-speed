@@ -415,9 +415,21 @@ public:
             }
             subgroup::tile_load<cache_hint::cached, cache_hint::cached>(
                     matA, matA_payload);
-            if constexpr (compute_policy::mma_engine == mma_engine::fpu
-                    && !is_col_major_a)
-                tile_transpose(matA);
+            //             sycl::ext::oneapi::experimental::printf("Mat A load :\n ");
+            // #pragma unroll
+            //             for (size_t row = 0; row < tile_size_x_a; row++) {
+            // #pragma unroll
+            //                 for (size_t col = 0; col < tile_size_y_a; col++) {
+            //                     sycl::ext::oneapi::experimental::printf("%0.1f ",
+            //                             (float)(sycl::half)
+            //                                     matA.reg[row * tile_size_y_a + col]);
+            //                 }
+            //                 sycl::ext::oneapi::experimental::printf("\n ");
+            //             }
+            //             sycl::ext::oneapi::experimental::printf("\n ");
+        //     if constexpr (matA_payload::trans) {
+        //         tile_transpose(matA);
+        //     }
 
             subgroup::tile_load<cache_hint::cached, cache_hint::cached>(
                     matB, matB_payload);
@@ -556,7 +568,7 @@ private:
                 }
                 if constexpr (compute_policy::quant_type
                         == quant_mode::S4_FULLRANGE_NO_ZP) {
-                    xetla_vector<int8_t, block_size_x_b *block_size_y_b>
+                    xetla_vector<int8_t, block_size_x_b * block_size_y_b>
                             cvt_blk_i8
                             = (cvt_blk.xetla_format<int8_t>()) - int8_t(8);
                     cvt_blk_i32 = (cvt_blk_i8.xetla_format<int8_t>());
