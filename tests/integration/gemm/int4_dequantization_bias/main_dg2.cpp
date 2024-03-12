@@ -28,7 +28,7 @@ public:
     static constexpr size_t mat_n = 4096 * 3;
     static constexpr size_t mat_k = 4096 * 3;
     static constexpr size_t wg_m = 1;
-    static constexpr size_t wg_n = 32;
+    static constexpr size_t wg_n = 16;
     static constexpr size_t sg_m = 1;
     static constexpr size_t sg_n = 16;
     static constexpr size_t sg_k = 16;
@@ -425,7 +425,7 @@ void dequantize_gemm_run(int iter) {
     using tile_shape = xetla::group::tile_shape_t<wg_tile_n, wg_tile_m,
             sg_tile_n, sg_tile_m>;
     static constexpr uint32_t periodic_sync_interval = 0;
-    static constexpr uint32_t prefetch_distance = 0;
+    static constexpr uint32_t prefetch_distance = 1;
 
     using mem_desc_a_t = xetla::mem_desc_t<data_type_a, layout_a,
             mem_space::global, DEVICE_MEM_ALIGNMENT / sizeof(data_type_a)>;
