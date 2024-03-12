@@ -845,7 +845,7 @@ public:
     static constexpr uint32_t block_bytes
             = block_size_x * block_size_y * sizeof(dtype);
 
-    // using mem_dtype = uint32_t;
+//     using mem_dtype = uint32_t;
     using mem_dtype = typename std::conditional<
             (block_per_row_bytes % sizeof(uint64_t) == 0), uint64_t,
             typename std::conditional<(block_per_row_bytes % sizeof(uint32_t)
