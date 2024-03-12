@@ -415,21 +415,18 @@ public:
             }
             subgroup::tile_load<cache_hint::cached, cache_hint::cached>(
                     matA, matA_payload);
-            //             sycl::ext::oneapi::experimental::printf("Mat A load :\n ");
-            // #pragma unroll
-            //             for (size_t row = 0; row < tile_size_x_a; row++) {
-            // #pragma unroll
-            //                 for (size_t col = 0; col < tile_size_y_a; col++) {
-            //                     sycl::ext::oneapi::experimental::printf("%0.1f ",
-            //                             (float)(sycl::half)
-            //                                     matA.reg[row * tile_size_y_a + col]);
-            //                 }
-            //                 sycl::ext::oneapi::experimental::printf("\n ");
-            //             }
-            //             sycl::ext::oneapi::experimental::printf("\n ");
-        //     if constexpr (matA_payload::trans) {
-        //         tile_transpose(matA);
-        //     }
+                //             sycl::ext::oneapi::experimental::printf("Mat A load :\n ");
+// #pragma unroll
+//             for (size_t row = 0; row < tile_size_x_a; row++) {
+// #pragma unroll
+//                 for (size_t col = 0; col < tile_size_y_a; col++) {
+//                     sycl::ext::oneapi::experimental::printf("%0.1f ",
+//                             (float)(sycl::half)
+//                                     matA.reg[row * tile_size_y_a + col]);
+//                 }
+//                 sycl::ext::oneapi::experimental::printf("\n ");
+//             }
+        //     sycl::ext::oneapi::experimental::printf("\n ");
 
             subgroup::tile_load<cache_hint::cached, cache_hint::cached>(
                     matB, matB_payload);

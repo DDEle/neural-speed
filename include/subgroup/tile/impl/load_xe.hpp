@@ -33,7 +33,7 @@ struct check_load_type {
                     && (payload_t::message_type == msg_type::block_2d)
                     && (payload_t::arch_tag <= gpu_arch::Xe));
 
-    static constexpr bool is_global_block_1d_xe
+    static constexpr bool is_global_block_1d
             = ((payload_t::memory_space == mem_space::global)
                     && (tile_t::tile_size_y == 1) && (tile_t::block_size_y == 1)
                     && (payload_t::message_type == msg_type::block_1d)
@@ -369,7 +369,7 @@ tile_load(tile_t &tile, payload_t &payload) {
 template <cache_hint L1 = cache_hint::cached,
         cache_hint L2 = cache_hint::cached, typename tile_t, typename payload_t>
 __XETLA_API typename std::enable_if_t<
-        detail::check_load_type<tile_t, payload_t>::is_global_block_1d_xe>
+        detail::check_load_type<tile_t, payload_t>::is_global_block_1d>
 tile_load(tile_t &tile, payload_t &payload) {
     using dtype = typename tile_t::dtype;
     using load_dtype = typename payload_t::mem_dtype;
