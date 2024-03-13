@@ -845,7 +845,7 @@ public:
     static constexpr uint32_t block_bytes
             = block_size_x * block_size_y * sizeof(dtype);
 
-//     using mem_dtype = uint32_t;
+    //     using mem_dtype = uint32_t;
     using mem_dtype = typename std::conditional<
             (block_per_row_bytes % sizeof(uint64_t) == 0), uint64_t,
             typename std::conditional<(block_per_row_bytes % sizeof(uint32_t)
@@ -1317,7 +1317,8 @@ struct prefetch_payload_t<
         tile_desc_t<tile_size_x_, tile_size_y_, block_size_x_, block_size_y_,
                 reg_layout_>,
         num_coop_sg_, arch_tag_,
-        std::enable_if_t<(arch_tag_ == gpu_arch::Dg2)>> {
+        std::enable_if_t<(arch_tag_ <= gpu_arch::Dg2
+                && (tile_size_y_ != 1 || block_size_y_ != 1))>> {
     using dtype = dtype_;
     using mem_desc_t
             = mem_desc_t<dtype_, mem_layout_, mem_space::global, alignment_>;
