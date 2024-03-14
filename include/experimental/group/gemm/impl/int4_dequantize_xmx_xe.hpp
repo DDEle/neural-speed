@@ -570,18 +570,9 @@ private:
                             = (cvt_blk.xetla_format<int8_t>()) - int8_t(8);
                     cvt_blk_i32 = (cvt_blk_i8.xetla_format<int8_t>());
                 }
-
-#pragma unroll
-                for (uint32_t k = 0; k < block_size_y_b; k++) {
-                    dst_blk.xetla_select<block_size_x_b, 1>(k * block_size_x_b)
-                            = cvt_blk_i32.xetla_select<block_size_x_b, 1>(
-                                      k * block_size_x_b)
-                            * scale_vec;
-                }
                 if constexpr (compute_policy::mma_engine == mma_engine::xmx) {
                     constexpr uint32_t vnni_rows
                             = sizeof(uint32_t) / sizeof(dtype_mma_b);
-
                     xetla_vector<dtype_mma_b,
                             matB_acc_t::block_elems * vnni_rows>
                             temp_blk;
@@ -616,6 +607,15 @@ private:
                                           block_size_x_b * vnni_rows, 1>(
                                           k * block_size_x_b * vnni_rows)
                                 * scale_blk;
+                    }
+                } else {
+#pragma unroll
+                    for (uint32_t k = 0; k < block_size_y_b; k++) {
+                        dst_blk.xetla_select<block_size_x_b, 1>(
+                                k * block_size_x_b)
+                                = cvt_blk_i32.xetla_select<block_size_x_b, 1>(
+                                          k * block_size_x_b)
+                                * scale_vec;
                     }
                 }
             }
