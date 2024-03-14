@@ -480,6 +480,19 @@ tile_load(tile_t &tile, payload_t &payload) {
         }
     }
 
+    sycl::ext::oneapi::experimental::printf("Mat A load :\n ");
+#pragma unroll
+    for (size_t row = 0; row < tile_desc::tile_size_y; row++) {
+#pragma unroll
+        for (size_t col = 0; col < tile_desc::tile_size_x; col++) {
+            sycl::ext::oneapi::experimental::printf("%0.1f ",
+                    (float)(sycl::half)
+                            tile.reg[row * tile_desc::tile_size_x + col]);
+        }
+        sycl::ext::oneapi::experimental::printf("\n ");
+    }
+    sycl::ext::oneapi::experimental::printf("\n ");
+
     if constexpr (payload_t::trans) {
         SW_BARRIER();
         tile_transpose(tile);

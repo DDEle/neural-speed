@@ -24,7 +24,8 @@ using namespace gpu::xetla::subgroup;
 template <typename dtype, int dst_swidth, int dst_sheight, int dst_spitch,
         int twidth, int theight, int bwidth, int bheight,
         bool transform = false, bool transpose = false,
-        int src_spitch = dst_spitch, gpu_arch arch_tag = gpu_arch::Xe>
+        int src_spitch = transpose ? dst_sheight : dst_spitch,
+        gpu_arch arch_tag = gpu_arch::Xe>
 struct tile_load_store_func {
     static KERNEL_FUNC inline void run([[maybe_unused]] sycl::nd_item<1> *item,
             dtype *a, [[maybe_unused]] dtype *b, dtype *c) {
