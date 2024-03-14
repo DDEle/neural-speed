@@ -802,7 +802,7 @@ template <typename dtype_, typename tile_desc_, mem_layout mem_layout_,
 struct mem_payload_t<
         mem_desc_t<dtype_, mem_layout_, mem_space::global, alignment_>,
         tile_desc_, msg_type::block_2d, arch_tag_,
-        std::enable_if_t<(arch_tag_ == gpu_arch::Dg2)>> {
+        std::enable_if_t<(arch_tag_ <= gpu_arch::Dg2)>> {
     using dtype = dtype_;
     using mem_desc_t
             = mem_desc_t<dtype_, mem_layout_, mem_space::global, alignment_>;

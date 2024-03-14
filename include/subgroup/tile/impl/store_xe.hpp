@@ -408,7 +408,7 @@ template <cache_hint L1 = cache_hint::write_back,
         typename payload_t>
 __XETLA_API typename std::enable_if_t<
         detail::check_store_type<tile_t, payload_t>::is_global_block_2d
-        && payload_t::arch_tag == gpu_arch::Dg2>
+        && payload_t::arch_tag <= gpu_arch::Dg2>
 tile_store(tile_t &tile, payload_t &payload) {
     using dtype = typename payload_t::dtype;
     using tile_desc = typename payload_t::tile_desc;

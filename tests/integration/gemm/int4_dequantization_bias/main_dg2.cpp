@@ -20,39 +20,17 @@
 using namespace gpu::xetla;
 //The number of times the kernel is executed
 constexpr int ITER = 1000;
-// MTL
+
 class test1 {
 public:
     //Extract the parameters required by different test cases
-    static constexpr size_t mat_m = 1;
+    static constexpr size_t mat_m = 8;
     static constexpr size_t mat_n = 4096 * 3;
     static constexpr size_t mat_k = 4096 * 3;
-    static constexpr size_t wg_m = 1;
-    static constexpr size_t wg_n = 128;
-    static constexpr size_t sg_m = 1;
+    static constexpr size_t wg_m = 8;
+    static constexpr size_t wg_n = 32;
+    static constexpr size_t sg_m = 8;
     static constexpr size_t sg_n = 16;
-    static constexpr size_t sg_k = 16;
-    static constexpr size_t dequant_s = 16;
-
-    static constexpr size_t local_kslicing = 8;
-    static constexpr size_t global_kslicing = 2;
-    static constexpr mem_layout layout_a = mem_layout::row_major;
-    static constexpr mem_layout layout_b = mem_layout::row_major;
-    using data_type_a = fp16;
-    using data_type_b = int4x2;
-    using data_type_c = fp16;
-};
-// Arc
-class test2 {
-public:
-    //Extract the parameters required by different test cases
-    static constexpr size_t mat_m = 1;
-    static constexpr size_t mat_n = 4096 * 3;
-    static constexpr size_t mat_k = 4096 * 3;
-    static constexpr size_t wg_m = 1;
-    static constexpr size_t wg_n = 256;
-    static constexpr size_t sg_m = 1;
-    static constexpr size_t sg_n = 32;
     static constexpr size_t sg_k = 16;
     static constexpr size_t dequant_s = 16;
 
@@ -446,10 +424,10 @@ void dequantize_gemm_run(int iter) {
             prefetch_distance, periodic_sync_interval>;
 
     using compute_policy
-            = xetla::group::compute_policy_int4_dequantize_xmx<compute_attr,
+            = xetla::group::compute_policy_int4_dequantize<compute_attr,
                     perf_tuning_knob, data_type_scale, data_type_zero_pt,
                     gpu::xetla::group::quant_mode::S4_FULLRANGE_NO_ZP,
-                    dequant_s, mma_engine::fpu, gpu_arch::Dg2>;
+                    dequant_s, mma_engine::xmx, gpu_arch::Dg2>;
 
     using gemm_t = xetla::group::gemm_t<compute_policy, tile_shape,
             mem_desc_a_t, mem_desc_b_t>;
