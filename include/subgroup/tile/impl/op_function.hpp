@@ -472,7 +472,6 @@ __XETLA_API typename std::enable_if_t<T::register_layout
 tile_transpose(T &mat_Acc) {
     constexpr uint32_t tile_size_y = T::tile_size_y;
     constexpr uint32_t tile_size_x = T::tile_size_x;
-//     constexpr uint32_t tile_elems = tile_size_y * tile_size_x;
     constexpr uint32_t block_size_y = T::block_size_y;
     constexpr uint32_t block_size_x = T::block_size_x;
     constexpr uint32_t block_elems = block_size_y * block_size_x;
@@ -486,8 +485,8 @@ tile_transpose(T &mat_Acc) {
         xetla_vector<dtype, block_elems> trans_blk;
 #pragma unroll
         for (uint32_t j = 0; j < block_size_y; j++) {
-            trans_blk.xetla_select<block_size_y, block_size_x>(j)
-                    = dst_blk.xetla_select<block_size_y, 1>(j * block_size_x);
+            trans_blk.xetla_select<block_size_x, block_size_y>(j)
+                    = dst_blk.xetla_select<block_size_x, 1>(j * block_size_x);
         }
         dst_blk = trans_blk;
     }

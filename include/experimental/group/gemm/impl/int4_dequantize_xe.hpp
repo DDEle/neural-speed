@@ -113,8 +113,6 @@ private:
     static constexpr uint32_t tile_size_y_c = sg_tile_m;
     static constexpr uint32_t block_size_x_a
             = compute_policy::block_bytes_x_a / sizeof(dtype_mma_a);
-    static_assert(block_size_x_a == 16);
-    //     static constexpr uint32_t block_size_y_a = 8;
     static constexpr uint32_t block_size_y_a
             = (compute_policy::block_size_y_a > tile_size_y_a)
             ? tile_size_y_a
@@ -415,19 +413,6 @@ public:
             }
             subgroup::tile_load<cache_hint::cached, cache_hint::cached>(
                     matA, matA_payload);
-            //             sycl::ext::oneapi::experimental::printf("Mat A load :\n ");
-            // #pragma unroll
-            //             for (size_t row = 0; row < tile_size_x_a; row++) {
-            // #pragma unroll
-            //                 for (size_t col = 0; col < tile_size_y_a; col++) {
-            //                     sycl::ext::oneapi::experimental::printf("%0.1f ",
-            //                             (float)(sycl::half)
-            //                                     matA.reg[row * tile_size_y_a + col]);
-            //                 }
-            //                 sycl::ext::oneapi::experimental::printf("\n ");
-            //             }
-            //     sycl::ext::oneapi::experimental::printf("\n ");
-
             subgroup::tile_load<cache_hint::cached, cache_hint::cached>(
                     matB, matB_payload);
             subgroup::tile_load<cache_hint::cached, cache_hint::cached>(
@@ -503,6 +488,20 @@ public:
     }
 
 private:
+    template <typename T>
+    void dump_mat(T mat, size_t tile_x, size_t tile_y) {
+#pragma unroll
+        for (size_t row = 0; row < tile_x; row++) {
+#pragma unroll
+            for (size_t col = 0; col < tile_y; col++) {
+                sycl::ext::oneapi::experimental::printf("%0.1f ",
+                        (float)(sycl::half)mat.reg[row * tile_y + col]);
+            }
+            sycl::ext::oneapi::experimental::printf("\n ");
+        }
+        sycl::ext::oneapi::experimental::printf("\n ");
+    }
+
     inline void dequantize(matB_acc_t &matB_acc, matB_t &matB, scale_t &scale,
             zero_pt_t &zero_pt) {
         //no tail, because this is matB
@@ -565,7 +564,7 @@ private:
                 }
                 if constexpr (compute_policy::quant_type
                         == quant_mode::S4_FULLRANGE_NO_ZP) {
-                    xetla_vector<int8_t, block_size_x_b * block_size_y_b>
+                    xetla_vector<int8_t, block_size_x_b *block_size_y_b>
                             cvt_blk_i8
                             = (cvt_blk.xetla_format<int8_t>()) - int8_t(8);
                     cvt_blk_i32 = (cvt_blk_i8.xetla_format<int8_t>());

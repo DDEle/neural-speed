@@ -50,7 +50,8 @@ struct compute_policy_int4_dequantize<compute_attr_, perf_tuning_knob_,
     static constexpr mma_engine mma_engine = mma_engine_;
     static constexpr gpu_arch arch_tag = arch_tag_;
 
-    static_assert(mma_engine != mma_engine::xmx || arch_tag != gpu_arch::Igpu,
+    static_assert(
+            !(mma_engine == mma_engine::xmx && arch_tag == gpu_arch::Igpu),
             "Igpu does not support xmx");
 
     using dtype_mma_acc = typename compute_attr::dtype_acc;
