@@ -100,10 +100,6 @@ template <>
 struct mma_attr_t<gpu_arch::Dg2> : public client_mma_atr_base_t<gpu_arch::Dg2> {
 };
 
-template <>
-struct mma_attr_t<gpu_arch::Igpu>
-    : public client_mma_atr_base_t<gpu_arch::Igpu> {};
-
 template <grf_mode grf_num_mode, gpu_arch arch_tag>
 struct register_attr_t {};
 
