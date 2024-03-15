@@ -423,7 +423,6 @@ public:
                         zero_pt, zero_pt_payload);
             }
             scale_load_addr_i += matB_t::tile_size_y;
-            ;
             SW_BARRIER();
             if constexpr (stages != 0) {
                 subgroup::tile_prefetch<cache_hint::cached, cache_hint::cached>(
