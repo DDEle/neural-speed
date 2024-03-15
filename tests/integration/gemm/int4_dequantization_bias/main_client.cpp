@@ -19,50 +19,36 @@
 // #define UT_DEBUG 1
 using namespace gpu::xetla;
 //The number of times the kernel is executed
-constexpr int ITER = 1000;
-// MTL
-class test1 {
+constexpr int ITER = 1;
+
+class test1_dg2 {
 public:
     //Extract the parameters required by different test cases
-    static constexpr size_t mat_m = 1;
-    static constexpr size_t mat_n = 4096 * 3;
-    static constexpr size_t mat_k = 4096 * 3;
-    static constexpr size_t wg_m = 1;
-    static constexpr size_t wg_n = 128;
-    static constexpr size_t sg_m = 1;
-    static constexpr size_t sg_n = 32;
+    static constexpr size_t mat_m = 8;
+    static constexpr size_t mat_n = 12288;
+    static constexpr size_t mat_k = 4096;
+    static constexpr size_t wg_m = 8;
+    static constexpr size_t wg_n = 64;
+    static constexpr size_t sg_m = 8;
+    static constexpr size_t sg_n = 16;
     static constexpr size_t sg_k = 16;
-    static constexpr size_t dequant_s = 16;
+    static constexpr size_t dequant_s = 64;
 
     static constexpr size_t local_kslicing = 8;
-    static constexpr size_t global_kslicing = 2;
+    static constexpr size_t global_kslicing = 1;
     static constexpr mem_layout layout_a = mem_layout::row_major;
     static constexpr mem_layout layout_b = mem_layout::row_major;
+    static constexpr mma_engine mma_eng = mma_engine::xmx;
+    static constexpr gpu_arch arch = gpu_arch::Dg2;
     using data_type_a = fp16;
     using data_type_b = int4x2;
     using data_type_c = fp16;
 };
-// Arc
-class test2 {
-public:
-    //Extract the parameters required by different test cases
-    static constexpr size_t mat_m = 1;
-    static constexpr size_t mat_n = 4096 * 3;
-    static constexpr size_t mat_k = 4096 * 3;
-    static constexpr size_t wg_m = 1;
-    static constexpr size_t wg_n = 256;
-    static constexpr size_t sg_m = 1;
-    static constexpr size_t sg_n = 32;
-    static constexpr size_t sg_k = 16;
-    static constexpr size_t dequant_s = 16;
 
-    static constexpr size_t local_kslicing = 8;
-    static constexpr size_t global_kslicing = 2;
-    static constexpr mem_layout layout_a = mem_layout::row_major;
-    static constexpr mem_layout layout_b = mem_layout::row_major;
-    using data_type_a = fp16;
-    using data_type_b = int4x2;
-    using data_type_c = fp16;
+class test1_igpu : public test1_dg2 {
+public:
+    static constexpr mma_engine mma_eng = mma_engine::fpu;
+    static constexpr gpu_arch arch = gpu_arch::Igpu;
 };
 
 class t1 {
@@ -449,20 +435,22 @@ void dequantize_gemm_run(int iter) {
             = xetla::group::compute_policy_int4_dequantize<compute_attr,
                     perf_tuning_knob, data_type_scale, data_type_zero_pt,
                     gpu::xetla::group::quant_mode::S4_FULLRANGE_NO_ZP,
-                    dequant_s, mma_engine::fpu, gpu_arch::Igpu>;
+                    dequant_s, Test::mma_eng, Test::arch>;
 
     using gemm_t = xetla::group::gemm_t<compute_policy, tile_shape,
             mem_desc_a_t, mem_desc_b_t>;
 
-    using bias_op_t = gpu::xetla::subgroup::bias_add_op_t<mem_desc_bias_t,
-            gpu_arch::Igpu>;
+    using bias_op_t
+            = gpu::xetla::subgroup::bias_add_op_t<mem_desc_bias_t, Test::arch>;
+
     using tile_op_t = gpu::xetla::subgroup::chained_tile_op_t<bias_op_t>;
 
     using epilogue_t = xetla::group::epilogue_t<
-            xetla::group::epilogue_policy_tile_op<tile_op_t, gpu_arch::Igpu>,
+            xetla::group::epilogue_policy_tile_op<tile_op_t, Test::arch>,
             tile_shape, mem_desc_c_t>;
 
-    using group_swizzle = xetla::kernel::group_swizzle_default<gpu_arch::Igpu>;
+    using group_swizzle = xetla::kernel::group_swizzle_default<Test::arch>;
+
     using gemm_op_t = xetla::kernel::gemm_universal_t<
             gpu::xetla::kernel::dispatch_policy_int4_dequantize_kslicing<
                     group_swizzle, global_kslicing, local_kslicing>,
@@ -674,7 +662,7 @@ TYPED_TEST_P(dequantize_gemm_test, esimd) {
 }
 
 REGISTER_TYPED_TEST_SUITE_P(dequantize_gemm_test, esimd);
-using tests = ::testing::Types<test1>;
+using tests = ::testing::Types<test1_igpu>;
 // using tests = ::testing::Types<qkv1, qkv2, qkv3, qkv4, qkv5, qkv6, qkv7, qkv8,
 //         qkv9, qkv10>;
 
