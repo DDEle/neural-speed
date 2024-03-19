@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include <common/core/common.hpp>
+#include <common/core/arch_config.hpp>
+#include <common/core/debug.hpp>
 #include <common/utils/tensor_descriptor.hpp>
 
 #define IN_RANGE(x, l, r) ((x) >= (l) && (x) <= (r))
