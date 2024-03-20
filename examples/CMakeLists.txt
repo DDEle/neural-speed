@@ -19,3 +19,4 @@ add_subdirectory(10_gemm_large_n)
 if(UNIX)  # pvc not available on win?
 add_subdirectory(11_stream_k_gemm)
 endif()
+add_subdirectory(00_fmha)

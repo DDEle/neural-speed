@@ -234,6 +234,7 @@ void dequantize_gemm_run(uint32_t iter) {
       data_type_zero_pt,
       gpu::xetla::group::quant_mode::S4_ASYM,
       dequant_s,
+      mma_engine::xmx,
       gpu_arch::Dg2>;
   using gemm_t = xetla::group::
       gemm_t<compute_policy, tile_shape, mem_desc_a_t, mem_desc_b_t>;

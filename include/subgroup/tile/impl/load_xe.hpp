@@ -454,8 +454,7 @@ tile_load(tile_t& tile, payload_t& payload) {
   constexpr uint32_t pack_factor = payload_t::pack_factor;
 
 #pragma unroll
-  for (uint32_t i = 0; i < tile_desc::tile_size_y / tile_desc::block_size_y;
-       i++) {
+  for (uint32_t i = 0; i < tile_desc::num_block_y; i++) {
     uint32_t offset_y = i * tile_desc::block_size_y;
 #pragma unroll
     for (uint32_t j = 0; j < tile_desc::num_block_x; j++) {
@@ -471,11 +470,17 @@ tile_load(tile_t& tile, payload_t& payload) {
             : offset_x * sizeof(dtype) +
                 (offset_y + 0) * payload.pitch_in_bytes;
 
-        xetla_mask<num_channel> pred_y =
-            payload.base_y + offset_y + sub_block_y + num_channel >
-                payload.height_in_elems
-            ? (xetla_vector_gen<uint32_t, num_channel>(0, 1) <
-               (payload.height_in_elems % num_channel))
+        const uint32_t sub_block_offset_x = payload.base_x + offset_x + 0;
+        const uint32_t sub_block_offset_y =
+            payload.base_y + offset_y + sub_block_y;
+        const auto offset_ch_dim =
+            payload_t::trans ? sub_block_offset_x : sub_block_offset_y;
+        const auto size_ch_dim =
+            payload_t::trans ? payload.width_in_elems : payload.height_in_elems;
+
+        xetla_mask<num_channel> pred = offset_ch_dim + num_channel > size_ch_dim
+            ? (xetla_vector_gen<uint32_t, num_channel>(offset_ch_dim, 1) <
+               size_ch_dim)
             : 1;
 
         reg_tmp = xetla_load_global<
@@ -487,16 +492,20 @@ tile_load(tile_t& tile, payload_t& payload) {
             payload_t::num_channel>(
             payload.base_ptr,
             payload.channel_offset + payload.base_offset + address_offset,
-            pred_y);
+            pred);
         if constexpr (payload_t::simd_exec_size > 1) {
           xetla_vector<load_dtype, load_elems> reg_tmp_trans;
 #pragma unroll
           for (uint32_t iii = 0; iii < payload_t::num_channel; iii++) {
-            reg_tmp_trans.xetla_select<payload_t::simd_exec_size, 1>(
-                iii * payload_t::simd_exec_size) =
-                reg_tmp.xetla_select<
-                    payload_t::simd_exec_size,
-                    payload_t::num_channel>(iii);
+            if ((bool)pred[iii])
+              reg_tmp_trans.xetla_select<payload_t::simd_exec_size, 1>(
+                  iii * payload_t::simd_exec_size) =
+                  reg_tmp.xetla_select<
+                      payload_t::simd_exec_size,
+                      payload_t::num_channel>(iii);
+            else
+              reg_tmp_trans.xetla_select<payload_t::simd_exec_size, 1>(
+                  iii * payload_t::simd_exec_size) = 0;
           }
           reg_sub
               .xetla_select<load_elems * pack_factor, 1>(
