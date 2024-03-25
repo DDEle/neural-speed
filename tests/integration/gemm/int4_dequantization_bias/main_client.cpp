@@ -21,6 +21,19 @@ using namespace gpu::xetla;
 // The number of times the kernel is executed
 constexpr int ITER = 1000;
 
+struct silu_op_t {
+  struct arguments_t {};
+  template <typename matAcc_t, typename coord_t>
+  __XETLA_API KERNEL_FUNC void operator()(
+      matAcc_t& matAcc,
+      const coord_t& coord,
+      const arguments_t& args,
+      uint32_t slm_base = 0,
+      uint32_t nbarrier_base = 0) {
+    using dtype = typename matAcc_t::dtype;
+    matAcc.reg = matAcc.reg / (1.f + xetla_exp<dtype>(-1.f * matAcc.reg));
+  }
+};
 class test1_dg2 {
  public:
   // Extract the parameters required by different test cases
@@ -35,7 +48,7 @@ class test1_dg2 {
   static constexpr size_t dequant_s = 128;
 
   static constexpr size_t local_kslicing = 8;
-  static constexpr size_t global_kslicing = 2;
+  static constexpr size_t global_kslicing = 1;
   static constexpr mem_layout layout_a = mem_layout::row_major;
   static constexpr mem_layout layout_b = mem_layout::row_major;
   static constexpr mma_engine mma_eng = mma_engine::xmx;
@@ -467,7 +480,11 @@ void dequantize_gemm_run(int iter) {
   using bias_op_t =
       gpu::xetla::subgroup::bias_add_op_t<mem_desc_bias_t, Test::arch>;
 
-  using tile_op_t = gpu::xetla::subgroup::chained_tile_op_t<bias_op_t>;
+  //   using tile_op_t = gpu::xetla::subgroup::chained_tile_op_t<bias_op_t>;
+  using mul_op_t = xetla::subgroup::
+      elemwise_reduce_op_t<reduce_op::prod, data_type_c, Test::arch>;
+  using tile_op_t =
+      gpu::xetla::subgroup::chained_tile_op_t<silu_op_t, mul_op_t>;
 
   using epilogue_t = xetla::group::epilogue_t<
       xetla::group::epilogue_policy_tile_op<tile_op_t, Test::arch>,
@@ -504,6 +521,8 @@ void dequantize_gemm_run(int iter) {
       malloc_host(size_zero_pt * sizeof(data_type_zero_pt), context));
   auto* bias_h = static_cast<data_type_bias*>(
       malloc_host(size_bias * sizeof(data_type_bias), context));
+  auto* Res_h = static_cast<data_type_c*>(
+      malloc_host(size_c * sizeof(data_type_c), context));
 
   auto* A_d = static_cast<data_type_a*>(aligned_alloc_device(
       DEVICE_MEM_ALIGNMENT, size_a * sizeof(data_type_a), device, context));
@@ -530,21 +549,29 @@ void dequantize_gemm_run(int iter) {
       size_bias * sizeof(data_type_bias),
       device,
       context));
+  auto* Res_d = static_cast<data_type_c*>(aligned_alloc_device(
+      DEVICE_MEM_ALIGNMENT, size_c * sizeof(data_type_c), device, context));
 
   for (unsigned i = 0; i < size_a; ++i) {
     A_h[i] = random_float();
 #ifdef UT_DEBUG
     A_h[i] = 1.f;
-    A_h[i] = layout_a == mem_layout::row_major
-        ? (i % matrix_k + i / matrix_k * 100)
-        : (i % matrix_m + i / matrix_m * 100);
+    // A_h[i] = layout_a == mem_layout::row_major
+    //     ? (i % matrix_k + i / matrix_k * 100)
+    //     : (i % matrix_m + i / matrix_m * 100);
 #endif
   }
 
   for (unsigned i = 0; i < size_b; ++i) {
     B_h[i] = uint8_t(random_uint8());
 #ifdef UT_DEBUG
-    B_h[i] = 152;
+    B_h[i] = 17;
+#endif
+  }
+  for (unsigned i = 0; i < size_c; ++i) {
+    Res_h[i] = random_float();
+#ifdef UT_DEBUG
+    Res_h[i] = 2.f;
 #endif
   }
 
@@ -581,6 +608,7 @@ void dequantize_gemm_run(int iter) {
   queue.memcpy((void*)A_d, (void*)A_h, size_a * sizeof(data_type_a)).wait();
   queue.memcpy((void*)B_d, (void*)B_h, size_b * sizeof(data_type_b)).wait();
   queue.memcpy((void*)C_d, (void*)C_h, size_c * sizeof(data_type_c)).wait();
+  queue.memcpy((void*)Res_d, (void*)Res_h, size_c * sizeof(data_type_c)).wait();
   queue.memcpy((void*)Acc_d, (void*)Acc_h, size_acc * sizeof(data_type_acc))
       .wait();
   queue.memcpy((void*)Cnt_d, (void*)Cnt_h, size_cnt * sizeof(uint32_t)).wait();
@@ -600,11 +628,15 @@ void dequantize_gemm_run(int iter) {
   // set up gemm arguments
   typename bias_op_t::shape_t bias_add_shape(matrix_n, 1, matrix_n);
   using epilogue_args_t = epilogue_t::arguments_t;
+  typename mul_op_t::shape_t mul_op_shape(matrix_n, matrix_m, matrix_n);
 
-  epilogue_args_t epilogue_args(
-      {// epilogue_args init list
-       // It accepts the base pointer to matrix D, and its dimensions
-       {bias_d, bias_add_shape}});
+  epilogue_args_t epilogue_args({
+      // epilogue_args init list
+      // It accepts the base pointer to matrix D, and its dimensions
+      {}, // silu
+      {Res_d, mul_op_shape}, // binary-mul
+      //   {bias_d, bias_add_shape},
+  });
 
   typename gemm_op_t::template arguments_t<compute_policy::quant_type> gemm_arg(
       matrix_m,
@@ -666,8 +698,14 @@ void dequantize_gemm_run(int iter) {
       int start_scale = i * size_scale_n + j * 2;
       for (uint32_t ii = 0; ii < dequant_s; ii++) {
         uint8_t data_in = B_h[start_in + ii * matrix_n / 2];
-        int8_t data_0 = int8_t(data_in & 0x0f) - 8;
-        int8_t data_1 = int8_t(data_in >> 4) - 8;
+        uint8_t data_even = (data_in & 0x0f) << 4;
+        int8_t data_0;
+        int8_t data_1;
+        memcpy(&data_0, &data_even, 1);
+        memcpy(&data_1, &data_in, 1);
+        data_0 = data_0 >> 4;
+        data_1 = data_1 >> 4;
+
         dequantize_b[start_out + ii * matrix_n] =
             fp16(data_0) * scale_h[start_scale];
         dequantize_b[start_out + ii * matrix_n + 1] =
@@ -693,11 +731,13 @@ void dequantize_gemm_run(int iter) {
   free(A_h, context);
   free(B_h, context);
   free(C_h, context);
+  free(Res_h, context);
   free(scale_h, context);
   free(zero_pt_h, context);
   free(A_d, context);
   free(B_d, context);
   free(C_d, context);
+  free(Res_d, context);
   free(scale_d, context);
   free(zero_pt_d, context);
   free(Acc_h, context);
