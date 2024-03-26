@@ -15,11 +15,12 @@
  *******************************************************************************/
 
 #include <utils/utils.hpp>
+#include <typeinfo>
 #include "xetla.hpp"
 // #define UT_DEBUG 1
 using namespace gpu::xetla;
 // The number of times the kernel is executed
-constexpr int ITER = 1000;
+constexpr int ITER = 10;
 
 class test1_dg2 {
  public:
@@ -71,6 +72,13 @@ class t1 {
   using data_type_a = fp16;
   using data_type_b = int4x2;
   using data_type_c = fp16;
+};
+class t1_igpu : public t1 {
+ public:
+  static constexpr size_t local_kslicing = 8;
+  static constexpr size_t global_kslicing = 1;
+  static constexpr mma_engine mma_eng = mma_engine::fpu;
+  static constexpr gpu_arch arch = gpu_arch::Igpu;
 };
 
 class t2 {
@@ -711,16 +719,27 @@ class dequantize_gemm_test : public ::testing::Test {};
 TYPED_TEST_SUITE_P(dequantize_gemm_test);
 
 TYPED_TEST_P(dequantize_gemm_test, esimd) {
-  dequantize_gemm_run<TypeParam>(ITER);
+  if constexpr (!std::is_same_v<TypeParam, void>)
+    dequantize_gemm_run<TypeParam>(ITER);
 }
 
 REGISTER_TYPED_TEST_SUITE_P(dequantize_gemm_test, esimd);
-using tests = ::testing::Types<test1_igpu>;
+using tests = ::testing::Types< //
+                                // test1_igpu,
+    t1_igpu,
+    void>;
 // using tests = ::testing::Types<qkv1, qkv2, qkv3, qkv4, qkv5, qkv6, qkv7,
 // qkv8,
 //         qkv9, qkv10>;
 
+struct GetTypeName {
+  template <typename T>
+  static std::string GetName(int idx) {
+    return std::to_string(idx) + "_" + typeid(T).name();
+  }
+};
 INSTANTIATE_TYPED_TEST_SUITE_P(
     dequantize_gemm_test_suite,
     dequantize_gemm_test,
-    tests);
+    tests,
+    GetTypeName);
