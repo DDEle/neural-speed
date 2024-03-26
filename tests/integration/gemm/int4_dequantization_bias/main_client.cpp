@@ -535,16 +535,16 @@ void dequantize_gemm_run(int iter) {
     A_h[i] = random_float();
 #ifdef UT_DEBUG
     A_h[i] = 1.f;
-    A_h[i] = layout_a == mem_layout::row_major
-        ? (i % matrix_k + i / matrix_k * 100)
-        : (i % matrix_m + i / matrix_m * 100);
+    // A_h[i] = layout_a == mem_layout::row_major
+    //     ? (i % matrix_k + i / matrix_k * 100)
+    //     : (i % matrix_m + i / matrix_m * 100);
 #endif
   }
 
   for (unsigned i = 0; i < size_b; ++i) {
     B_h[i] = uint8_t(random_uint8());
 #ifdef UT_DEBUG
-    B_h[i] = 152;
+    B_h[i] = 17;
 #endif
   }
 
@@ -556,19 +556,19 @@ void dequantize_gemm_run(int iter) {
   }
 
   for (unsigned i = 0; i < size_zero_pt; ++i) {
-    zero_pt_h[i] = 0.f;
+    zero_pt_h[i] = 0;
   }
 
   for (unsigned i = 0; i < size_c; ++i) {
-    C_h[i] = 0;
+    C_h[i] = random_float();
   }
 
   for (unsigned i = 0; i < size_acc; ++i) {
-    Acc_h[i] = 0;
+    Acc_h[i] = random_float();
   }
 
   for (unsigned i = 0; i < size_cnt; ++i) {
-    Cnt_h[i] = 0;
+    Cnt_h[i] = random_uint8();
   }
 
   for (unsigned i = 0; i < size_bias; ++i) {
@@ -597,6 +597,8 @@ void dequantize_gemm_run(int iter) {
   queue.memcpy((void*)bias_d, (void*)bias_h, size_bias * sizeof(data_type_bias))
       .wait();
 
+  queue.memset(Cnt_d, 0, size_cnt * sizeof(uint32_t)).wait();
+  queue.memset(Acc_d, 0, size_acc * sizeof(data_type_acc)).wait();
   // set up gemm arguments
   typename bias_op_t::shape_t bias_add_shape(matrix_n, 1, matrix_n);
   using epilogue_args_t = epilogue_t::arguments_t;
