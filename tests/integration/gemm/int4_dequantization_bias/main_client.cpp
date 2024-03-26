@@ -666,8 +666,14 @@ void dequantize_gemm_run(int iter) {
       int start_scale = i * size_scale_n + j * 2;
       for (uint32_t ii = 0; ii < dequant_s; ii++) {
         uint8_t data_in = B_h[start_in + ii * matrix_n / 2];
-        int8_t data_0 = int8_t(data_in & 0x0f) - 8;
-        int8_t data_1 = int8_t(data_in >> 4) - 8;
+        uint8_t data_even = (data_in & 0x0f) << 4;
+        int8_t data_0;
+        int8_t data_1;
+        memcpy(&data_0, &data_even, 1);
+        memcpy(&data_1, &data_in, 1);
+        data_0 = data_0 >> 4;
+        data_1 = data_1 >> 4;
+
         dequantize_b[start_out + ii * matrix_n] =
             fp16(data_0) * scale_h[start_scale];
         dequantize_b[start_out + ii * matrix_n + 1] =
