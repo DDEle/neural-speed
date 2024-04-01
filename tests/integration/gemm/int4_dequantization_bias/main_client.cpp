@@ -39,7 +39,7 @@ class test1_dg2 {
   static constexpr mem_layout layout_a = mem_layout::row_major;
   static constexpr mem_layout layout_b = mem_layout::row_major;
   static constexpr mma_engine mma_eng = mma_engine::xmx;
-  static constexpr gpu_arch arch = gpu_arch::Dg2;
+  static constexpr gpu_arch arch = gpu_arch::XeHpg;
   using data_type_a = fp16;
   using data_type_b = int4x2;
   using data_type_c = fp16;
@@ -48,7 +48,7 @@ class test1_dg2 {
 class test1_igpu : public test1_dg2 {
  public:
   static constexpr mma_engine mma_eng = mma_engine::fpu;
-  static constexpr gpu_arch arch = gpu_arch::Igpu;
+  static constexpr gpu_arch arch = gpu_arch::XeLpg;
 };
 
 class t1 {
@@ -82,7 +82,7 @@ class t2 {
   static constexpr size_t wg_m = 8;
   static constexpr size_t wg_n = 32;
   static constexpr size_t sg_m = 8;
-  static constexpr size_t sg_n = 16;g-
+  static constexpr size_t sg_n = 16;
   static constexpr size_t sg_k = 16;
   static constexpr size_t dequant_s = 32;
 

@@ -72,7 +72,7 @@ class gemm_t<
   using dtype_mma_a = typename compute_policy::dtype_mma_a;
   using dtype_mma_b = typename compute_policy::dtype_mma_b;
 
-  using check_dtype = group::gemm<gpu_arch::Xe>::default_xmx::
+  using check_dtype = group::gemm<gpu_arch::XeHpc>::default_xmx::
       check_dtype_default<dtype_a, dtype_b, dtype_mma_a, dtype_mma_b>;
 
   /******** set memory attribute **********/
@@ -87,7 +87,7 @@ class gemm_t<
       is_col_major_b ? tdesc_update_dir::x_dir : tdesc_update_dir::y_dir;
 
   using check_memory =
-      group::gemm<gpu_arch::Xe>::default_xmx::check_memory_default<
+      group::gemm<gpu_arch::XeHpc>::default_xmx::check_memory_default<
           mem_layout_a,
           mem_layout_b,
           mem_space_a,
@@ -112,7 +112,7 @@ class gemm_t<
   static constexpr uint32_t block_size_y_b = compute_policy::block_size_y_b;
 
   using check_tile_size =
-      group::gemm<gpu_arch::Xe>::default_xmx::check_tile_size_default<
+      group::gemm<gpu_arch::XeHpc>::default_xmx::check_tile_size_default<
           dtype_mma_a,
           tile_size_x_a,
           tile_size_y_a,
@@ -364,7 +364,7 @@ class gemm_t<
           if constexpr (wg_size_x > 1) {
             nbarrier_a.arrive();
           }
-          if constexpr (arch_tag >= gpu_arch::Xe)
+          if constexpr (arch_tag >= gpu_arch::XeHpc)
             if constexpr (wg_size_y > 1) {
               nbarrier_b.arrive();
             }
@@ -403,7 +403,7 @@ class gemm_t<
           if constexpr (wg_size_x > 1) {
             nbarrier_a.wait();
           }
-          if constexpr (arch_tag >= gpu_arch::Xe)
+          if constexpr (arch_tag >= gpu_arch::XeHpc)
             if constexpr (wg_size_y > 1) {
               nbarrier_b.wait();
             }

@@ -42,7 +42,7 @@ class gemm_t<
     mem_desc_a_t_, // memory attribute of matA
     mem_desc_b_t_, // memory attribute of matB
     pre_processing_t_, // pre_processing functor
-    std::enable_if_t<(arch_tag_ <= gpu_arch::Xe)>> {
+    std::enable_if_t<(arch_tag_ <= gpu_arch::XeHpc)>> {
  public:
   using mem_desc_a_t = mem_desc_a_t_;
   using mem_desc_b_t = mem_desc_b_t_;
@@ -371,7 +371,7 @@ class gemm_t<
           if constexpr (wg_size_x > 1) {
             nbarrier_a.arrive();
           }
-          if constexpr (arch_tag >= gpu_arch::Xe)
+          if constexpr (arch_tag >= gpu_arch::XeHpc)
             if constexpr (wg_size_y > 1) {
               nbarrier_b.arrive();
             }
@@ -410,7 +410,7 @@ class gemm_t<
           if constexpr (wg_size_x > 1) {
             nbarrier_a.wait();
           }
-          if constexpr (arch_tag >= gpu_arch::Xe)
+          if constexpr (arch_tag >= gpu_arch::XeHpc)
             if constexpr (wg_size_y > 1) {
               nbarrier_b.wait();
             }

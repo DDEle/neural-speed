@@ -29,7 +29,7 @@ namespace gpu::xetla {
 template <msg_type message_type, gpu_arch arch_tag>
 struct load_store_attr_t {};
 template <>
-struct load_store_attr_t<msg_type::block_2d, gpu_arch::Xe> {
+struct load_store_attr_t<msg_type::block_2d, gpu_arch::XeHpc> {
   /// HW limitation checks https://gfxspecs.intel.com/Predator/Home/Index/55490
   static constexpr uint32_t max_load_height_in_elem = 32;
   static constexpr uint32_t max_load_width_in_bytes = 64;
@@ -71,12 +71,12 @@ struct client_load_store_attr_base_t {
 };
 
 template <>
-struct load_store_attr_t<msg_type::block_2d, gpu_arch::Dg2>
-    : public client_load_store_attr_base_t<msg_type::block_2d, gpu_arch::Dg2> {
+struct load_store_attr_t<msg_type::block_2d, gpu_arch::XeHpg>
+    : public client_load_store_attr_base_t<msg_type::block_2d, gpu_arch::XeHpg> {
 };
 template <>
-struct load_store_attr_t<msg_type::block_2d, gpu_arch::Igpu>
-    : public client_load_store_attr_base_t<msg_type::block_2d, gpu_arch::Igpu> {
+struct load_store_attr_t<msg_type::block_2d, gpu_arch::XeLpg>
+    : public client_load_store_attr_base_t<msg_type::block_2d, gpu_arch::XeLpg> {
 };
 
 template <gpu_arch arch_tag>
@@ -90,14 +90,14 @@ struct client_mma_atr_base_t {
 };
 
 template <>
-struct mma_attr_t<gpu_arch::Xe> {
+struct mma_attr_t<gpu_arch::XeHpc> {
   static constexpr uint32_t mma_m_in_elem = 8;
   static constexpr uint32_t mma_n_in_elem = 16;
   static constexpr uint32_t mma_k_in_bytes = 32;
 };
 
 template <>
-struct mma_attr_t<gpu_arch::Dg2> : public client_mma_atr_base_t<gpu_arch::Dg2> {
+struct mma_attr_t<gpu_arch::XeHpg> : public client_mma_atr_base_t<gpu_arch::XeHpg> {
 };
 
 template <grf_mode grf_num_mode, gpu_arch arch_tag>
@@ -113,7 +113,7 @@ struct client_register_attr_base_t {
 };
 
 template <grf_mode grf_num_mode>
-struct register_attr_t<grf_num_mode, gpu_arch::Xe> {
+struct register_attr_t<grf_num_mode, gpu_arch::XeHpc> {
   static constexpr uint32_t acc_reg_in_bytes =
       (grf_num_mode == grf_mode::normal) ? 4 * 64 : 8 * 64;
   static constexpr uint32_t grf_in_bytes =
@@ -122,12 +122,12 @@ struct register_attr_t<grf_num_mode, gpu_arch::Xe> {
 };
 
 template <grf_mode grf_num_mode>
-struct register_attr_t<grf_num_mode, gpu_arch::Dg2>
-    : public client_register_attr_base_t<grf_num_mode, gpu_arch::Dg2> {};
+struct register_attr_t<grf_num_mode, gpu_arch::XeHpg>
+    : public client_register_attr_base_t<grf_num_mode, gpu_arch::XeHpg> {};
 
 template <grf_mode grf_num_mode>
-struct register_attr_t<grf_num_mode, gpu_arch::Igpu>
-    : public client_register_attr_base_t<grf_num_mode, gpu_arch::Igpu> {};
+struct register_attr_t<grf_num_mode, gpu_arch::XeLpg>
+    : public client_register_attr_base_t<grf_num_mode, gpu_arch::XeLpg> {};
 
 template <gpu_arch arch_tag>
 struct arch_attr_t {};
@@ -135,38 +135,38 @@ struct arch_attr_t {};
 template <gpu_arch arch_tag>
 struct client_arch_attr_base_t {
   template <msg_type message_type = msg_type::block_2d>
-  using load_store_attr = load_store_attr_t<message_type, gpu_arch::Dg2>;
+  using load_store_attr = load_store_attr_t<message_type, gpu_arch::XeHpg>;
 
   template <grf_mode grf_num_mode = grf_mode::normal>
-  using register_attr = register_attr_t<grf_num_mode, gpu_arch::Dg2>;
+  using register_attr = register_attr_t<grf_num_mode, gpu_arch::XeHpg>;
 
-  using mma_attr = mma_attr_t<gpu_arch::Dg2>;
+  using mma_attr = mma_attr_t<gpu_arch::XeHpg>;
 
   static constexpr uint32_t max_wg_num = 64;
   static constexpr uint32_t local_mem_size = 64 * 1024;
 };
 
 template <>
-struct arch_attr_t<gpu_arch::Xe> {
+struct arch_attr_t<gpu_arch::XeHpc> {
   template <msg_type message_type = msg_type::block_2d>
-  using load_store_attr = load_store_attr_t<message_type, gpu_arch::Xe>;
+  using load_store_attr = load_store_attr_t<message_type, gpu_arch::XeHpc>;
 
   template <grf_mode grf_num_mode = grf_mode::double_grf>
-  using register_attr = register_attr_t<grf_num_mode, gpu_arch::Xe>;
+  using register_attr = register_attr_t<grf_num_mode, gpu_arch::XeHpc>;
 
-  using mma_attr = mma_attr_t<gpu_arch::Xe>;
+  using mma_attr = mma_attr_t<gpu_arch::XeHpc>;
 
   static constexpr uint32_t max_wg_num = 64;
   static constexpr uint32_t local_mem_size = 128 * 1024;
 };
 
 template <>
-struct arch_attr_t<gpu_arch::Dg2>
-    : public client_arch_attr_base_t<gpu_arch::Dg2> {};
+struct arch_attr_t<gpu_arch::XeHpg>
+    : public client_arch_attr_base_t<gpu_arch::XeHpg> {};
 
 template <>
-struct arch_attr_t<gpu_arch::Igpu>
-    : public client_arch_attr_base_t<gpu_arch::Igpu> {};
+struct arch_attr_t<gpu_arch::XeLpg>
+    : public client_arch_attr_base_t<gpu_arch::XeLpg> {};
 
 /// @} xetla_core_arch_config
 

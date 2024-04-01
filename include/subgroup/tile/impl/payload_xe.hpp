@@ -44,7 +44,7 @@ struct mem_payload_t<
     tile_desc_,
     msg_type::block_2d,
     arch_tag_,
-    std::enable_if_t<(arch_tag_ == gpu_arch::Xe)>> {
+    std::enable_if_t<(arch_tag_ == gpu_arch::XeHpc)>> {
   using tile_desc = tile_desc_;
   using mem_desc_t =
       mem_desc_t<dtype_, mem_layout_, mem_space::global, alignment_>;
@@ -252,7 +252,7 @@ struct mem_payload_t<
     tile_desc_,
     msg_type::block_1d,
     arch_tag_,
-    std::enable_if_t<(arch_tag_ <= gpu_arch::Xe)>> {
+    std::enable_if_t<(arch_tag_ <= gpu_arch::XeHpc)>> {
   using mem_desc_t =
       mem_desc_t<dtype_, mem_layout::row_major, mem_space::global, alignment_>;
   using dtype = dtype_;
@@ -375,7 +375,7 @@ struct mem_payload_t<
     tile_desc_,
     msg_type::atomic_add,
     arch_tag_,
-    std::enable_if_t<(arch_tag_ <= gpu_arch::Xe)>> {
+    std::enable_if_t<(arch_tag_ <= gpu_arch::XeHpc)>> {
   using mem_desc_t =
       mem_desc_t<dtype_, mem_layout::row_major, mem_space::global, alignment_>;
   using dtype = dtype_;
@@ -551,7 +551,7 @@ struct mem_payload_t<
     tile_desc_,
     msg_type::block_1d,
     arch_tag_,
-    std::enable_if_t<(arch_tag_ <= gpu_arch::Xe)>> {
+    std::enable_if_t<(arch_tag_ <= gpu_arch::XeHpc)>> {
   using mem_desc_t =
       mem_desc_t<dtype_, mem_layout::row_major, mem_space::local, alignment_>;
   using dtype = dtype_;
@@ -675,7 +675,7 @@ struct mem_payload_t<
     tile_desc_,
     msg_type::unaligned_2d,
     arch_tag_,
-    std::enable_if_t<(arch_tag_ <= gpu_arch::Xe)>> {
+    std::enable_if_t<(arch_tag_ <= gpu_arch::XeHpc)>> {
   using dtype = dtype_;
   using mem_desc_t =
       mem_desc_t<dtype_, mem_layout_, mem_space::global, alignment_>;
@@ -684,7 +684,7 @@ struct mem_payload_t<
   static constexpr mem_layout memory_layout = mem_layout_;
   static constexpr msg_type message_type = msg_type::unaligned_2d;
   static constexpr uint32_t alignment_in_bytes = mem_desc_t::alignment_in_bytes;
-  static constexpr gpu_arch arch_tag = gpu_arch::Xe;
+  static constexpr gpu_arch arch_tag = gpu_arch::XeHpc;
 
  private:
   static constexpr uint32_t tile_size_x = tile_desc::tile_size_x;
@@ -696,7 +696,7 @@ struct mem_payload_t<
       mem_desc_t,
       tile_desc,
       msg_type::unaligned_2d,
-      gpu_arch::Xe>;
+      gpu_arch::XeHpc>;
 
  public:
   static constexpr bool mem_transpose = memory_layout == mem_layout::col_major;
@@ -906,7 +906,7 @@ struct mem_payload_t<
     tile_desc_,
     msg_type::block_2d,
     arch_tag_,
-    std::enable_if_t<(arch_tag_ <= gpu_arch::Dg2)>> {
+    std::enable_if_t<(arch_tag_ <= gpu_arch::XeHpg)>> {
   using dtype = dtype_;
   using mem_desc_t =
       mem_desc_t<dtype_, mem_layout_, mem_space::global, alignment_>;
@@ -1113,7 +1113,7 @@ struct mem_payload_t<
     tile_desc_,
     msg_type::scatter,
     arch_tag_,
-    std::enable_if_t<(arch_tag_ <= gpu_arch::Xe)>> {
+    std::enable_if_t<(arch_tag_ <= gpu_arch::XeHpc)>> {
   using mem_desc_t =
       mem_desc_t<dtype_, mem_layout::row_major, mem_space::local, alignment_>;
   using dtype = dtype_;
@@ -1288,7 +1288,7 @@ struct mem_payload_t<
         reg_layout::vnni_tiled_col_major>,
     msg_type::scatter,
     arch_tag_,
-    std::enable_if_t<(arch_tag_ <= gpu_arch::Xe)>> {
+    std::enable_if_t<(arch_tag_ <= gpu_arch::XeHpc)>> {
   using mem_desc_t =
       mem_desc_t<dtype_, mem_layout::row_major, mem_space::local, alignment_>;
   using dtype = dtype_;
@@ -1480,7 +1480,7 @@ struct prefetch_payload_t<
     num_coop_sg_,
     arch_tag_,
     std::enable_if_t<(
-        arch_tag_ <= gpu_arch::Dg2 &&
+        arch_tag_ <= gpu_arch::XeHpg &&
         (tile_size_y_ != 1 || block_size_y_ != 1))>> {
   using dtype = dtype_;
   using mem_desc_t =
@@ -1695,7 +1695,7 @@ struct prefetch_payload_t<
     num_coop_sg_,
     arch_tag_,
     std::enable_if_t<
-        (arch_tag_ == gpu_arch::Xe) &&
+        (arch_tag_ == gpu_arch::XeHpc) &&
         (tile_size_y_ != 1 || block_size_y_ != 1)>> {
   using dtype = dtype_;
   using mem_desc_t =
@@ -1883,7 +1883,7 @@ struct prefetch_payload_t<
     tile_desc_t<tile_size_x_, 1, block_size_x_, 1, reg_layout_>,
     num_coop_sg_,
     arch_tag_,
-    std::enable_if_t<(arch_tag_ <= gpu_arch::Xe)>> {
+    std::enable_if_t<(arch_tag_ <= gpu_arch::XeHpc)>> {
   using dtype = dtype_;
   using mem_desc_t =
       mem_desc_t<dtype_, mem_layout_, mem_space::global, alignment_>;
@@ -1991,7 +1991,7 @@ struct prefetch_payload_t<
     tile_desc_,
     num_coop_sg_,
     arch_tag_,
-    std::enable_if_t<(arch_tag_ <= gpu_arch::Xe)>> {
+    std::enable_if_t<(arch_tag_ <= gpu_arch::XeHpc)>> {
   using dtype = dtype_;
   using mem_desc_t =
       mem_desc_t<dtype_, mem_layout_, mem_space::local, alignment_>;

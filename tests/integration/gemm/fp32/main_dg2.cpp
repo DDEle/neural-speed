@@ -175,17 +175,17 @@ void fpu_fp32_gemm_run(int iter) {
       perf_tuning_knob_t<sg_tile_k, prefetch_distance, periodic_sync_interval>;
 
   using compute_policy = xetla::group::
-      compute_policy_default_fpu<compute_attr, perf_tuning_knob, gpu_arch::Dg2>;
+      compute_policy_default_fpu<compute_attr, perf_tuning_knob, gpu_arch::XeHpg>;
 
   using gemm_t = xetla::group::
       gemm_t<compute_policy, tile_shape, mem_desc_a_t, mem_desc_b_t>;
 
   using epilogue_t = xetla::group::epilogue_t<
-      xetla::group::epilogue_policy_default<gpu_arch::Dg2>,
+      xetla::group::epilogue_policy_default<gpu_arch::XeHpg>,
       tile_shape,
       mem_desc_c_t>;
 
-  using group_swizzle = xetla::kernel::group_swizzle_default<gpu_arch::Dg2>;
+  using group_swizzle = xetla::kernel::group_swizzle_default<gpu_arch::XeHpg>;
   using gemm_op_t = xetla::kernel::gemm_universal_t<
       gpu::xetla::kernel::dispatch_policy_kslicing<
           group_swizzle,

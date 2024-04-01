@@ -33,7 +33,7 @@ namespace gpu::xetla::group {
 template <
     typename compute_attr_,
     typename perf_tuning_knob_,
-    gpu_arch arch_tag_ = gpu_arch::Xe,
+    gpu_arch arch_tag_ = gpu_arch::XeHpc,
     typename enable = void>
 struct compute_policy_default_xmx {};
 
@@ -79,7 +79,7 @@ struct compute_policy_default_xmx<
 template <
     typename compute_attr_,
     typename perf_tuning_knob_,
-    gpu_arch arch_tag_ = gpu_arch::Xe,
+    gpu_arch arch_tag_ = gpu_arch::XeHpc,
     typename enable = void>
 struct compute_policy_unaligned_xmx {};
 
@@ -125,7 +125,7 @@ struct compute_policy_unaligned_xmx<
 template <
     typename compute_attr_,
     typename perf_tuning_knob_,
-    gpu_arch arch_tag_ = gpu_arch::Xe,
+    gpu_arch arch_tag_ = gpu_arch::XeHpc,
     typename enable = void>
 struct compute_policy_default_fpu {};
 
@@ -138,7 +138,7 @@ struct compute_policy_default_fpu<
     compute_attr_,
     perf_tuning_knob_,
     arch_tag_,
-    std::enable_if_t<(arch_tag_ <= gpu_arch::Xe)>> {
+    std::enable_if_t<(arch_tag_ <= gpu_arch::XeHpc)>> {
   using compute_attr = compute_attr_;
   using perf_tuning_knob = perf_tuning_knob_;
   static constexpr int k_stride = perf_tuning_knob::k_stride;
@@ -154,9 +154,9 @@ struct compute_policy_default_fpu<
   static constexpr uint32_t block_size_x_a =
       block_bytes_x_a / sizeof(dtype_mma_a);
   static constexpr uint32_t block_size_y_a =
-      arch_tag_ == gpu_arch::Igpu ? 8 : 16;
+      arch_tag_ == gpu_arch::XeLpg ? 8 : 16;
   static constexpr uint32_t block_bytes_x_b =
-      arch_tag_ == gpu_arch::Igpu ? 32 : 64;
+      arch_tag_ == gpu_arch::XeLpg ? 32 : 64;
   static constexpr uint32_t block_size_x_b =
       block_bytes_x_b / sizeof(dtype_mma_b);
   static constexpr uint32_t block_size_y_b = block_size_x_a;

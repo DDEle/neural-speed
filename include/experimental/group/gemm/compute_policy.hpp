@@ -37,11 +37,11 @@ template <
     quant_mode quant_type_,
     int dequant_s_,
     mma_engine mma_engine_ = mma_engine::xmx,
-    gpu_arch arch_tag_ = gpu_arch::Xe,
+    gpu_arch arch_tag_ = gpu_arch::XeHpc,
     typename enable = void>
 struct compute_policy_int4_dequantize {};
 
-/// @brief Specialized for Xe and Dg2 architecture.
+/// @brief Specialized for XeHpc and XeHpg architecture.
 template <
     typename compute_attr_,
     typename perf_tuning_knob_,
@@ -60,7 +60,7 @@ struct compute_policy_int4_dequantize<
     dequant_s_,
     mma_engine_,
     arch_tag_,
-    std::enable_if_t<(arch_tag_ <= gpu_arch::Xe)>> {
+    std::enable_if_t<(arch_tag_ <= gpu_arch::XeHpc)>> {
   using compute_attr = compute_attr_;
   using perf_tuning_knob = perf_tuning_knob_;
   static constexpr int k_stride = perf_tuning_knob::k_stride;
@@ -70,8 +70,8 @@ struct compute_policy_int4_dequantize<
   static constexpr gpu_arch arch_tag = arch_tag_;
 
   static_assert(
-      !(mma_engine == mma_engine::xmx && arch_tag == gpu_arch::Igpu),
-      "Igpu does not support xmx");
+      !(mma_engine == mma_engine::xmx && arch_tag == gpu_arch::XeLpg),
+      "XeLpg does not support xmx");
 
   using dtype_mma_acc = typename compute_attr::dtype_acc;
   using dtype_mma_a = typename compute_attr::dtype_a;
