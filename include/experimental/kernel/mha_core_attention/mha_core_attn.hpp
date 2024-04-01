@@ -112,8 +112,8 @@ struct xetla_mha_core_attn_fwd_t {
       group::pre_processing_default_t<tile_attr_128x128, gpu_arch::XeHpc>;
   using pre_processing_128x256 =
       group::pre_processing_default_t<tile_attr_128x256, gpu_arch::XeHpc>;
-  using pre_processing_128x64 =
-      group::pre_processing_matA_neg_filter_t<tile_attr_128x64, gpu_arch::XeHpc>;
+  using pre_processing_128x64 = group::
+      pre_processing_matA_neg_filter_t<tile_attr_128x64, gpu_arch::XeHpc>;
 
   using gemm_op_128x128_t = group::gemm_t<
       compute_policy_QKT,
@@ -944,10 +944,10 @@ struct xetla_mha_core_attn_bwd_t {
       group::pre_processing_default_t<tile_attr_128x64, gpu_arch::XeHpc>;
   using pre_processing_256x64 =
       group::pre_processing_default_t<tile_attr_256x64, gpu_arch::XeHpc>;
-  using pre_processing_128x64_af =
-      group::pre_processing_matA_neg_filter_t<tile_attr_128x64, gpu_arch::XeHpc>;
-  using pre_processing_256x64_af =
-      group::pre_processing_matA_neg_filter_t<tile_attr_256x64, gpu_arch::XeHpc>;
+  using pre_processing_128x64_af = group::
+      pre_processing_matA_neg_filter_t<tile_attr_128x64, gpu_arch::XeHpc>;
+  using pre_processing_256x64_af = group::
+      pre_processing_matA_neg_filter_t<tile_attr_256x64, gpu_arch::XeHpc>;
 
   using gemm_op_128x128_t = group::gemm_t<
       compute_policy_QKT,

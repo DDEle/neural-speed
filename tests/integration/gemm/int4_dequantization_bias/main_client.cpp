@@ -21,7 +21,7 @@ using namespace gpu::xetla;
 // The number of times the kernel is executed
 constexpr int ITER = 1000;
 
-class test1_dg2 {
+class test1_xehpg {
  public:
   // Extract the parameters required by different test cases
   static constexpr size_t mat_m = 1;
@@ -45,7 +45,7 @@ class test1_dg2 {
   using data_type_c = fp16;
 };
 
-class test1_igpu : public test1_dg2 {
+class test1_gpu_xelpg : public test1_xehpg {
  public:
   static constexpr mma_engine mma_eng = mma_engine::fpu;
   static constexpr gpu_arch arch = gpu_arch::XeLpg;
@@ -723,7 +723,7 @@ TYPED_TEST_P(dequantize_gemm_test, esimd) {
 }
 
 REGISTER_TYPED_TEST_SUITE_P(dequantize_gemm_test, esimd);
-using tests = ::testing::Types<test1_igpu>;
+using tests = ::testing::Types<test1_gpu_xelpg>;
 // using tests = ::testing::Types<qkv1, qkv2, qkv3, qkv4, qkv5, qkv6, qkv7,
 // qkv8,
 //         qkv9, qkv10>;

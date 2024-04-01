@@ -323,8 +323,8 @@ struct get_load_block_size_auto<
     mem_layout::row_major,
     reg_layout::tiled> {
  private:
-  using load_store_attr =
-      arch_attr_t<gpu_arch::XeHpc>::template load_store_attr<msg_type::block_2d>;
+  using load_store_attr = arch_attr_t<
+      gpu_arch::XeHpc>::template load_store_attr<msg_type::block_2d>;
   static constexpr uint32_t max_load_height_in_elem =
       load_store_attr::max_load_height_in_elem;
   static constexpr uint32_t max_load_width_in_bytes =
@@ -360,8 +360,8 @@ struct get_store_block_size_auto<
     mem_layout::row_major,
     reg_layout::tiled> {
  private:
-  using load_store_attr =
-      arch_attr_t<gpu_arch::XeHpc>::template load_store_attr<msg_type::block_2d>;
+  using load_store_attr = arch_attr_t<
+      gpu_arch::XeHpc>::template load_store_attr<msg_type::block_2d>;
   static constexpr uint32_t max_store_height_in_elem =
       load_store_attr::max_store_height_in_elem;
   static constexpr uint32_t max_store_width_in_bytes =

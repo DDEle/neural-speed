@@ -276,9 +276,8 @@ template <
     cache_hint L1H = cache_hint::none,
     cache_hint L2H = cache_hint::none,
     gpu_arch arch_tag = gpu_arch::XeHpc>
-__XETLA_API std::enable_if_t<arch_tag == gpu_arch::XeHpc, void> xetla_tstore_global(
-    xetla_tdescriptor tdesc,
-    xetla_vector<Ty, N> data) {
+__XETLA_API std::enable_if_t<arch_tag == gpu_arch::XeHpc, void>
+xetla_tstore_global(xetla_tdescriptor tdesc, xetla_vector<Ty, N> data) {
   DEBUG_INVOKE(
       dbg_level::core, core::block_2d<arch_tag, Ty>::check_store(tdesc));
 

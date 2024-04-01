@@ -72,12 +72,14 @@ struct client_load_store_attr_base_t {
 
 template <>
 struct load_store_attr_t<msg_type::block_2d, gpu_arch::XeHpg>
-    : public client_load_store_attr_base_t<msg_type::block_2d, gpu_arch::XeHpg> {
-};
+    : public client_load_store_attr_base_t<
+          msg_type::block_2d,
+          gpu_arch::XeHpg> {};
 template <>
 struct load_store_attr_t<msg_type::block_2d, gpu_arch::XeLpg>
-    : public client_load_store_attr_base_t<msg_type::block_2d, gpu_arch::XeLpg> {
-};
+    : public client_load_store_attr_base_t<
+          msg_type::block_2d,
+          gpu_arch::XeLpg> {};
 
 template <gpu_arch arch_tag>
 struct mma_attr_t {};
@@ -97,8 +99,8 @@ struct mma_attr_t<gpu_arch::XeHpc> {
 };
 
 template <>
-struct mma_attr_t<gpu_arch::XeHpg> : public client_mma_atr_base_t<gpu_arch::XeHpg> {
-};
+struct mma_attr_t<gpu_arch::XeHpg>
+    : public client_mma_atr_base_t<gpu_arch::XeHpg> {};
 
 template <grf_mode grf_num_mode, gpu_arch arch_tag>
 struct register_attr_t {};
