@@ -467,9 +467,7 @@ vnni_transform(T_dst& dst, T_src& src) {
 /// @param mat_Acc Is the reference of the tile object.
 /// @return No return, update the data in-place.
 template <typename T>
-__XETLA_API
-    typename std::enable_if_t<T::register_layout == reg_layout::transpose_tiled>
-    tile_transpose(T& mat_Acc) {
+__XETLA_API void tile_transpose(T& mat_Acc) {
   constexpr uint32_t tile_size_y = T::tile_size_y;
   constexpr uint32_t tile_size_x = T::tile_size_x;
   constexpr uint32_t block_size_y = T::block_size_y;
