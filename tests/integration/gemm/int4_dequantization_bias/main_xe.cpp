@@ -395,6 +395,7 @@ void dequantize_gemm_run(int iter) {
       data_type_zero_pt,
       gpu::xetla::group::quant_mode::S4_FULLRANGE_NO_ZP,
       dequant_s,
+      mma_engine::xmx,
       gpu_arch::XeHpc>;
 
   using gemm_t = xetla::group::
