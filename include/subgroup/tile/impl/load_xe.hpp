@@ -464,8 +464,9 @@ tile_load(tile_t& tile, payload_t& payload) {
 #pragma unroll
       for (uint32_t sub_block_y = 0; sub_block_y < tile_desc::block_size_y;
            sub_block_y += num_channel) {
+        constexpr auto mem_transpose = payload_t::mem_transpose;
         xetla_vector<load_dtype, load_elems> reg_tmp = 0;
-        uint32_t address_offset = payload_t::trans
+        uint32_t address_offset = mem_transpose
             ? offset_x * payload.pitch_in_bytes + (offset_y + 0) * sizeof(dtype)
             : offset_x * sizeof(dtype) +
                 (offset_y + 0) * payload.pitch_in_bytes;
@@ -474,9 +475,9 @@ tile_load(tile_t& tile, payload_t& payload) {
         const uint32_t sub_block_offset_y =
             payload.base_y + offset_y + sub_block_y;
         const auto offset_ch_dim =
-            payload_t::trans ? sub_block_offset_x : sub_block_offset_y;
+            mem_transpose ? sub_block_offset_x : sub_block_offset_y;
         const auto size_ch_dim =
-            payload_t::trans ? payload.width_in_elems : payload.height_in_elems;
+            mem_transpose ? payload.width_in_elems : payload.height_in_elems;
 
         xetla_mask<num_channel> pred = offset_ch_dim + num_channel > size_ch_dim
             ? (xetla_vector_gen<uint32_t, num_channel>(offset_ch_dim, 1) <

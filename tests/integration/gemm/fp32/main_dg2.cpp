@@ -19,6 +19,7 @@
 using namespace gpu::xetla;
 // The number of times the kernel is executed
 constexpr int ITER = 1;
+constexpr int WARM = 0;
 
 class t1 {
  public:
@@ -111,7 +112,7 @@ int gemm_result_validate(
 }
 
 template <class Test>
-void fpu_fp32_gemm_run(int iter) {
+void fpu_fp32_gemm_run(int iter, int warm) {
   using namespace gpu;
   // Accept incoming parameters
   constexpr size_t matrix_m = Test::mat_m;
@@ -259,7 +260,6 @@ void fpu_fp32_gemm_run(int iter) {
 
   size_t ops = 2 * matrix_m * matrix_n * matrix_k + matrix_m * matrix_n;
   profiling_helper prof("dequantize_gemm", ops, "gflops");
-  int constexpr warm = 0;
   try {
     for (int i = 0; i < iter + warm; i++) {
       if (i >= warm)
@@ -308,8 +308,7 @@ class fpu_fp32_gemm_test : public ::testing::Test {};
 TYPED_TEST_SUITE_P(fpu_fp32_gemm_test);
 
 TYPED_TEST_P(fpu_fp32_gemm_test, esimd) {
-  // sycl_fpu_fp32_gemm_run<TypeParam>(ITER);
-  fpu_fp32_gemm_run<TypeParam>(ITER);
+  fpu_fp32_gemm_run<TypeParam>(ITER, WARM);
 }
 
 REGISTER_TYPED_TEST_SUITE_P(fpu_fp32_gemm_test, esimd);

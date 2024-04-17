@@ -380,8 +380,8 @@ class gemm_t<
       SW_BARRIER();
       subgroup::tile_load<cache_hint::cached, cache_hint::cached>(
           matA, matA_payload);
-      if constexpr (!is_col_major_a)
-        reorder_matA(matA);
+      // if constexpr (!is_col_major_a)
+      //   reorder_matA(matA);
 
       subgroup::tile_load<cache_hint::cached, cache_hint::cached>(
           matB, matB_payload);
