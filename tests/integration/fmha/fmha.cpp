@@ -15,9 +15,7 @@
  *******************************************************************************/
 #include <utils/utils.hpp>
 #include <memory>
-#include "fmha_forward.hpp"
-#include "fmha_forward_policy.h"
-
+#include "fmha_kernels.hpp"
 #include "xetla.hpp"
 
 using FMHA_T = fp16;
@@ -172,10 +170,10 @@ int fma_result_validate(
 }
 
 void fmha_run(uint32_t iter, uint32_t warmup = 10) {
-  using fmha_forward_op_t = gpu::xetla::fmha::fmha_forward_t<
+  using fmha_forward_op_t = gpu::xetla::fmha::fmha_i<
       policy_t,
       FMHA_T,
-      gpu_arch::XeLpg,
+      0, // gpu_arch::XeLpg,
       // gpu_arch::XeHpg,
       false,
       false,
@@ -230,16 +228,17 @@ void fmha_run(uint32_t iter, uint32_t warmup = 10) {
       device,
       context);
 
-  sycl::nd_range<3> nd_range =
-      fmha_forward_op_t::get_nd_range(num_batches * num_heads, num_queries);
-  fmha_forward_op_t::check_slm_size(queue.get_info<info::queue::device>());
-  std::cout << "slm_size:\t" << fmha_forward_op_t::get_slm_size() << std::endl;
-  std::cout << "global_size:\t" << nd_range.get_global_range()[0] << ",\t"
-            << nd_range.get_global_range()[1] << ",\t"
-            << nd_range.get_global_range()[2] << std::endl;
-  std::cout << "local_size:\t" << nd_range.get_local_range()[0] << ",\t"
-            << nd_range.get_local_range()[1] << ",\t"
-            << nd_range.get_local_range()[2] << std::endl;
+  // sycl::nd_range<3> nd_range =
+  //     fmha_forward_op_t::get_nd_range(num_batches * num_heads, num_queries);
+  // fmha_forward_op_t::check_slm_size(queue.get_info<info::queue::device>());
+  // std::cout << "slm_size:\t" << fmha_forward_op_t::get_slm_size() <<
+  // std::endl; std::cout << "global_size:\t" << nd_range.get_global_range()[0]
+  // << ",\t"
+  //           << nd_range.get_global_range()[1] << ",\t"
+  //           << nd_range.get_global_range()[2] << std::endl;
+  // std::cout << "local_size:\t" << nd_range.get_local_range()[0] << ",\t"
+  //           << nd_range.get_local_range()[1] << ",\t"
+  //           << nd_range.get_local_range()[2] << std::endl;
   constexpr int64_t qk_ops = static_cast<int64_t>(2) * num_batches * num_heads *
       head_size * num_queries * num_keys;
   constexpr int64_t pv_ops = static_cast<int64_t>(2) * num_batches * num_heads *
@@ -247,39 +246,38 @@ void fmha_run(uint32_t iter, uint32_t warmup = 10) {
 
   int64_t ops = qk_ops + pv_ops;
   profiling_helper prof("gemm_universal", ops, "gflops");
+
+  typename fmha_forward_op_t::arguments_t kern_args(
+      Q,
+      K,
+      V,
+      nullptr,
+      nullptr,
+      nullptr,
+      DST,
+      L,
+      num_batches,
+      num_heads,
+      num_heads, // num_kv_heads
+      head_size,
+      num_queries,
+      num_keys,
+      -1,
+      -1,
+      -1,
+      softmax_scale,
+      0,
+      0,
+      0,
+      (uint64_t)0,
+      (uint64_t)0);
+
   for (uint32_t i = 0; i < iter + warmup; i++) {
     if (i >= warmup) {
       prof.cpu_start();
     }
-    auto gpu_event = queue.submit([&](handler& cgh) {
-      cgh.parallel_for(nd_range, [=](sycl::nd_item<3> item) KERNEL_MAIN {
-        typename fmha_forward_op_t::arguments_t kern_args(
-            Q,
-            K,
-            V,
-            nullptr,
-            nullptr,
-            nullptr,
-            DST,
-            L,
-            num_batches,
-            num_heads,
-            num_heads, // num_kv_heads
-            head_size,
-            num_queries,
-            num_keys,
-            -1,
-            -1,
-            -1,
-            softmax_scale,
-            0,
-            0,
-            0,
-            (uint64_t)0,
-            (uint64_t)0);
-        fmha_forward_op_t{}(item, kern_args);
-      });
-    });
+    auto gpu_event = queue.submit(
+        [&](handler& cgh) { fmha_forward_op_t::kernel_cgf(cgh, kern_args); });
     gpu_event.wait();
 
     if (i >= warmup) {
