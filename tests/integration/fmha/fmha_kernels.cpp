@@ -52,8 +52,9 @@ KERNELS_API void fmha_i<
   sycl::nd_range<3> nd_range =
       fmha_forward_op_t::get_nd_range(args.uB * args.uN, args.uF);
   // fmha_forward_op_t::check_slm_size(queue.get_info<sycl::info::queue::device>());
-  // std::cout << "slm_size:\t" << fmha_forward_op_t::get_slm_size() << std::endl;
-  // std::cout << "global_size:\t" << nd_range.get_global_range()[0] << ",\t"
+  // std::cout << "slm_size:\t" << fmha_forward_op_t::get_slm_size() <<
+  // std::endl; std::cout << "global_size:\t" << nd_range.get_global_range()[0]
+  // << ",\t"
   //           << nd_range.get_global_range()[1] << ",\t"
   //           << nd_range.get_global_range()[2] << std::endl;
   // std::cout << "local_size:\t" << nd_range.get_local_range()[0] << ",\t"
@@ -65,14 +66,37 @@ KERNELS_API void fmha_i<
   });
 }
 
-template struct KERNELS_API fmha_i<
+#ifdef XETLA_KERNEL_XE_LPG
+#define FMHA_I_IMPL_XE_LPG(P, T, ...) \
+  template struct KERNELS_API fmha_i<P, T, 0, __VA_ARGS__>;
+#define FMHA_I_IMPL_ARCHS FMHA_I_IMPL_XE_LPG
+#else
+#define FMHA_I_IMPL_XE_LPG(...)
+#endif
+
+#ifdef XETLA_KERNEL_XE_HPG
+#define FMHA_I_IMPL_XE_HPG(P, T, ...) \
+  template struct KERNELS_API fmha_i<P, T, 1, __VA_ARGS__>;
+#define FMHA_I_IMPL_ARCHS FMHA_I_IMPL_XE_HPG
+#else
+#define FMHA_I_IMPL_XE_HPG(...)
+#endif
+
+#ifdef XETLA_KERNEL_XE_HPC
+#define FMHA_I_IMPL_XE_HPC(P, T, ...) \
+  template struct KERNELS_API fmha_i<P, T, 2, __VA_ARGS__>;
+#define FMHA_I_IMPL_ARCHS FMHA_I_IMPL_XE_HPC
+#else
+#define FMHA_I_IMPL_XE_HPC(...)
+#endif
+
+FMHA_I_IMPL_ARCHS(
     stage0<fmha_policy_32x128x128>,
     sycl::half,
-    0,
     false,
     false,
     false,
     true,
     false,
-    false>;
+    false)
 } // namespace gpu::xetla::fmha

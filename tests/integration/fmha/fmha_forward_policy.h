@@ -15,8 +15,6 @@
  *******************************************************************************/
 #pragma once
 
-// #include "xetla.hpp"
-
 namespace gpu::xetla {
 
 struct fmha_policy_base {

@@ -16,7 +16,7 @@
 #include <utils/utils.hpp>
 #include <memory>
 #include "fmha_kernels.hpp"
-#include "xetla.hpp"
+#include "xetla_common_types.hpp"
 
 using FMHA_T = fp16;
 using policy_t = stage0<fmha_policy_32x128x128>;
