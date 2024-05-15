@@ -43,4 +43,9 @@ struct ifmha_policy_256x64 : base_policy {
   static constexpr uint32_t kHm = 256;
   static constexpr uint32_t kSgHm = 32;
 };
+
+template <typename P>
+struct stage0 : P {
+  static constexpr uint32_t stages = 0;
+};
 } // namespace gpu::xetla

@@ -82,7 +82,7 @@ class ifmha_forward_t {
         accum_t sm_scale,
         scalar_t* out,
         uint32_t num_batches,
-        uint32_t beam,
+        [[maybe_unused]] uint32_t beam,
         uint32_t num_heads,
         uint32_t head_size,
         uint32_t kv_len0,
@@ -355,33 +355,55 @@ class ifmha_forward_t {
     using dtype_b = typename matB_t::dtype;
     using dtype_src = typename matSrc_t::dtype;
     using dtype_dst = typename matDst_t::dtype;
-    static constexpr uint32_t a_tile_size_y = matA_t::tile_size_y;
-    static constexpr uint32_t a_tile_size_x = matA_t::tile_size_x;
-    static constexpr uint32_t a_tile_elems = matA_t::tile_elems;
-    static constexpr uint32_t a_block_size_y = matA_t::block_size_y;
-    static constexpr uint32_t a_block_size_x = matA_t::block_size_x;
-    static constexpr uint32_t a_block_elems = matA_t::block_elems;
+    [[maybe_unused]] static constexpr uint32_t a_tile_size_y =
+        matA_t::tile_size_y;
+    [[maybe_unused]] static constexpr uint32_t a_tile_size_x =
+        matA_t::tile_size_x;
+    [[maybe_unused]] static constexpr uint32_t a_tile_elems =
+        matA_t::tile_elems;
+    [[maybe_unused]] static constexpr uint32_t a_block_size_y =
+        matA_t::block_size_y;
+    [[maybe_unused]] static constexpr uint32_t a_block_size_x =
+        matA_t::block_size_x;
+    [[maybe_unused]] static constexpr uint32_t a_block_elems =
+        matA_t::block_elems;
 
-    static constexpr uint32_t b_tile_size_x = matB_t::tile_size_x;
-    static constexpr uint32_t b_tile_size_y = matB_t::tile_size_y;
-    static constexpr uint32_t b_tile_elems = matB_t::tile_elems;
-    static constexpr uint32_t b_block_size_x = matB_t::block_size_x;
-    static constexpr uint32_t b_block_size_y = matB_t::block_size_y;
-    static constexpr uint32_t b_block_elems = matB_t::block_elems;
+    [[maybe_unused]] static constexpr uint32_t b_tile_size_x =
+        matB_t::tile_size_x;
+    [[maybe_unused]] static constexpr uint32_t b_tile_size_y =
+        matB_t::tile_size_y;
+    [[maybe_unused]] static constexpr uint32_t b_tile_elems =
+        matB_t::tile_elems;
+    [[maybe_unused]] static constexpr uint32_t b_block_size_x =
+        matB_t::block_size_x;
+    [[maybe_unused]] static constexpr uint32_t b_block_size_y =
+        matB_t::block_size_y;
+    [[maybe_unused]] static constexpr uint32_t b_block_elems =
+        matB_t::block_elems;
 
-    static constexpr uint32_t tile_size_m = matDst_t::tile_size_y;
-    static constexpr uint32_t tile_size_k = a_tile_size_x;
-    static constexpr uint32_t tile_size_n = matDst_t::tile_size_x;
-    static constexpr uint32_t tile_elems = tile_size_m * tile_size_n;
-    static constexpr uint32_t block_size_n = matDst_t::block_size_x;
-    static constexpr uint32_t block_size_k = a_block_size_x;
-    static constexpr uint32_t block_size_m = matDst_t::block_size_y;
-    static constexpr uint32_t block_elems = block_size_m * block_size_n;
+    [[maybe_unused]] static constexpr uint32_t tile_size_m =
+        matDst_t::tile_size_y;
+    [[maybe_unused]] static constexpr uint32_t tile_size_k = a_tile_size_x;
+    [[maybe_unused]] static constexpr uint32_t tile_size_n =
+        matDst_t::tile_size_x;
+    [[maybe_unused]] static constexpr uint32_t tile_elems =
+        tile_size_m * tile_size_n;
+    [[maybe_unused]] static constexpr uint32_t block_size_n =
+        matDst_t::block_size_x;
+    [[maybe_unused]] static constexpr uint32_t block_size_k = a_block_size_x;
+    [[maybe_unused]] static constexpr uint32_t block_size_m =
+        matDst_t::block_size_y;
+    [[maybe_unused]] static constexpr uint32_t block_elems =
+        block_size_m * block_size_n;
 
-    static constexpr int32_t num_block_n = matDst_t::num_block_x;
-    static constexpr int32_t num_block_m = matDst_t::num_block_y;
-    static constexpr int32_t num_block_k = tile_size_k / block_size_k;
-    static constexpr int32_t num_block = num_block_m * num_block_n;
+    [[maybe_unused]] static constexpr int32_t num_block_n =
+        matDst_t::num_block_x;
+    [[maybe_unused]] static constexpr int32_t num_block_m =
+        matDst_t::num_block_y;
+    [[maybe_unused]] static constexpr int32_t num_block_k =
+        tile_size_k / block_size_k;
+    [[maybe_unused]] static constexpr int32_t num_block =
+        num_block_m * num_block_n;
 
     static constexpr int32_t mma_m = tile_shape_BmBc::sg_tile_size_y;
     static constexpr int32_t mma_k = 8;
@@ -392,15 +414,15 @@ class ifmha_forward_t {
     constexpr int32_t a_mma_elems = mma_m * a_block_size_x;
     constexpr int32_t c_mma_elems = mma_m * block_size_n;
 #pragma unroll
-    for (int j = 0; j < num_block_n; j++) {
+    for (uint32_t j = 0; j < num_block_n; j++) {
 #pragma unroll
-      for (int i = 0; i < tile_size_m / block_size_m; i++) {
+      for (uint32_t i = 0; i < tile_size_m / block_size_m; i++) {
         auto src_block = src.reg.xetla_select<block_elems, 1>(
             (i * num_block_n + j) * block_elems);
         auto dst_block = dst.reg.xetla_select<block_elems, 1>(
             (i * num_block_n + j) * block_elems);
 #pragma unroll
-        for (int mma_i = 0; mma_i < block_size_m / mma_m; mma_i++) {
+        for (uint32_t mma_i = 0; mma_i < block_size_m / mma_m; mma_i++) {
           auto src_sub_blk =
               src_block.xetla_select<c_mma_elems, 1>(mma_i * c_mma_elems);
           auto dst_sub_blk =
@@ -518,14 +540,14 @@ class ifmha_forward_t {
     matA_t matA;
     matB_t matB;
 #pragma unroll
-    for (int i = 0; i < stages_bmbc; i++) {
+    for (uint32_t i = 0; i < stages_bmbc; i++) {
       subgroup::tile_prefetch<cache_hint::cached, cache_hint::cached>(
           matB_prefetch_payload);
       matB_prefetch_payload.template update_tdesc<update_dir_b>(
           matB_t::tile_size_y);
     }
 
-    for (int i = 0; i < loop_count; i++) {
+    for (uint32_t i = 0; i < loop_count; i++) {
       if constexpr (sync_freq_bmbc > 0) {
         if constexpr ((i % sync_freq_bmbc) == 0) {
           if constexpr (tile_shape_BmBc::wg_size_y > 1) {
@@ -566,11 +588,11 @@ class ifmha_forward_t {
     constexpr uint32_t block_elems = matSij_t::block_elems;
 
     using matQi_tile_desc_t = subgroup::tile_desc_t<accum_step_1d, 1, 16, 1>;
-    using matQi_payload_t = subgroup::mem_payload_t<
-        mem_desc_t<scalar_t, mem_desc_QiL_t::layout, mem_desc_QiL_t::space>,
-        matQi_tile_desc_t,
-        msg_type::block_1d,
-        gpu_arch::XeHpc>;
+    // using matQi_payload_t = subgroup::mem_payload_t<
+    //     mem_desc_t<scalar_t, mem_desc_QiL_t::layout, mem_desc_QiL_t::space>,
+    //     matQi_tile_desc_t,
+    //     msg_type::block_1d,
+    //     gpu_arch::XeHpc>;
     using matQi_t = subgroup::tile_t<scalar_t, matQi_tile_desc_t>;
     using matQi_acc_t = subgroup::tile_t<accum_t, matQi_tile_desc_t>;
 
@@ -586,23 +608,23 @@ class ifmha_forward_t {
     matKj_acc_t matKj_acc;
 
 #pragma unroll
-    for (int i = 0; i < stages_bmbc; i++) {
+    for (uint32_t i = 0; i < stages_bmbc; i++) {
       ctx.idesc_Kj.iprefetch_tile();
       ctx.idesc_Kj.update_prefetch_tdesc();
     }
     uint32_t loop_count = (args.uH + accum_step_1d - 1) / accum_step_1d;
 
-    for (int istep = 0; istep < loop_count; istep++) {
+    for (uint32_t istep = 0; istep < loop_count; istep++) {
 #pragma unroll
-      for (int i = 0; i < 1; i++) {
+      for (uint32_t i = 0; i < 1; i++) {
         matQi.reg =
             matQ.reg.xetla_select<accum_step_1d, 1>(istep * accum_step_1d);
         subgroup::elemwise_cvt(matQi_acc, matQi);
 #pragma unroll
-        for (int j = 0; j < num_block_x; j++) {
+        for (uint32_t j = 0; j < num_block_x; j++) {
           matQK_acc_t matQK_acc;
 #pragma unroll
-          for (int k = 0; k < block_size_x; k++) {
+          for (uint32_t k = 0; k < block_size_x; k++) {
             // load Kj from buffer 1
             ctx.idesc_Kj.iload_tile(matKj_acc);
             ctx.idesc_Kj.iprefetch_tile();
@@ -677,7 +699,10 @@ class ifmha_forward_t {
     brgemm(ctx.g, matOi, brgemm_args, 0, /* nbarrier_base */ nbarrier_cnt);
   }
 #else
-  inline void gemm0_Oi(matOi_t& matOi, arguments_t& args, int32_t start_T) {
+  inline void gemm0_Oi(
+      matOi_t& matOi,
+      [[maybe_unused]] arguments_t& args,
+      [[maybe_unused]] int32_t start_T) {
     using matPi_tile_desc_t = subgroup::tile_desc_t<kBc, 1, kBc, 1>;
     using matPi_t = subgroup::tile_t<scalar_t, matPi_tile_desc_t>;
     using matPi_load_t = subgroup::mem_payload_t<
@@ -748,14 +773,14 @@ class ifmha_forward_t {
     matA_t matA;
     matB_t matB;
 #pragma unroll
-    for (int i = 0; i < stages_bmbc; i++) {
+    for (uint32_t i = 0; i < stages_bmbc; i++) {
       subgroup::tile_prefetch<cache_hint::cached, cache_hint::cached>(
           matB_prefetch_payload);
       matB_prefetch_payload.template update_tdesc<update_dir_b>(
           matB_t::tile_size_y);
     }
 #pragma unroll
-    for (int i = 0; i < loop_count; i++) {
+    for (uint32_t i = 0; i < loop_count; i++) {
       if constexpr (sync_freq_bmbc > 0) {
         if constexpr ((i % sync_freq_bmbc) == 0) {
           if constexpr (tile_shape_BmHm::wg_size_y > 1) {
@@ -794,7 +819,7 @@ class ifmha_forward_t {
 
   inline void prefetch_v1() {
 #pragma unroll
-    for (int i = 0; i < stages_bmhm; i++) {
+    for (uint32_t i = 0; i < stages_bmhm; i++) {
       ctx.idesc_Vj.iprefetch_tile();
       ctx.idesc_Vj.update_prefetch_tdesc();
     }
@@ -816,14 +841,14 @@ class ifmha_forward_t {
 
     uint32_t loop_count = (args.uH + accum_step_1d - 1) / accum_step_1d;
 
-    for (int istep = 0; istep < loop_count; istep++) {
+    for (uint32_t istep = 0; istep < loop_count; istep++) {
       matVj_acc_t matVj_acc;
 #pragma unroll
-      for (int i = 0; i < 1; i++) {
+      for (uint32_t i = 0; i < 1; i++) {
 #pragma unroll
-        for (int j = 0; j < num_block_x; j++) {
+        for (uint32_t j = 0; j < num_block_x; j++) {
 #pragma unroll
-          for (int k = 0; k < block_size_x; k++) {
+          for (uint32_t k = 0; k < block_size_x; k++) {
             // load Vj from buffer 1
             ctx.idesc_Vj.iload_tile(matVj_acc);
             ctx.idesc_Vj.iprefetch_tile();
@@ -871,11 +896,11 @@ class ifmha_forward_t {
       // nbarrier_consumer.arrive_wait();
       ctx.nbarrier.arrive_wait();
 #pragma unroll
-      for (int i = 1; i < wg_size_x; i++) {
+      for (uint32_t i = 1; i < wg_size_x; i++) {
         int id = (ctx.sg_idx + i) % wg_size_x;
         offset = id * kSgHm;
 
-        for (int j = 0; j < 1; j++) {
+        for (uint32_t j = 0; j < 1; j++) {
           matX_payload_t matX_payload(
               PV_slm, kHm, ctx.beam_id + 1, kHm, offset, ctx.beam_id);
           subgroup::tile_load(matX_acc, matX_payload);
@@ -899,12 +924,12 @@ class ifmha_forward_t {
 
       offset = ctx.sg_idx * kSgHm;
 #pragma unroll
-      for (int i = 0; i < 1; i++) {
+      for (uint32_t i = 0; i < 1; i++) {
         matX_payload_t matX_payload(
             PV_slm, kHm, ctx.beam_id + 1, kHm, offset, ctx.beam_id);
         subgroup::tile_load(matX_acc, matX_payload);
 
-        for (int j = 0; j < num_block_x; j++) {
+        for (uint32_t j = 0; j < num_block_x; j++) {
           auto dst_sub = matOi.reg.xetla_select<block_size_x, 1>(
               j * block_elems + i * block_size_x);
           auto src_sub =
@@ -1100,11 +1125,11 @@ class ifmha_forward_t {
   // bias: (b, beams, 1, 1, t)
   // alibi: (b, beams, N, 1, t)
   inline KERNEL_FUNC void load_bias(
-      arguments_t& args,
+      [[maybe_unused]] arguments_t& args,
       scalar_t* ptr,
       uint32_t base_offset,
       uint32_t startT,
-      uint32_t endT,
+      [[maybe_unused]] uint32_t endT,
       matSij_t& matAcc) {
     base_offset += (startT + ctx.sg_idx * kSgBc);
     constexpr int simd_lanes = kSgBc > 32 ? 32 : 16;
@@ -1143,7 +1168,7 @@ class ifmha_forward_t {
     matOi_t matOi(0);
 
     // iterate through key0 and value0
-    for (int32_t start_T = 0; start_T < args.uT0; start_T += kBc) {
+    for (uint32_t start_T = 0; start_T < args.uT0; start_T += kBc) {
       ctx.set_context0(args, start_T);
       // compute Sij
       matSij_t matSij(0);
@@ -1177,7 +1202,7 @@ class ifmha_forward_t {
     }
 
     // iterate through key1 and value1
-    for (int32_t start_T = 0; start_T < args.uT1; start_T += kBc) {
+    for (uint32_t start_T = 0; start_T < args.uT1; start_T += kBc) {
       ctx.set_context1(args, start_T);
       // compute Sij
       matSij_t matSij(0);

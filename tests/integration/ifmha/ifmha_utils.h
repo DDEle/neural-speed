@@ -39,10 +39,10 @@ struct imem_desc_t {
   xetla_vector<int32_t, SZ> index_;
   uint32_t total_;
 
-  int32_t offset_;
+  uint32_t offset_;
   uint32_t lane_;
   uint32_t beam_;
-  int32_t offset_pre_;
+  uint32_t offset_pre_;
   uint32_t lane_pre_;
   uint32_t beam_pre_;
 
@@ -145,7 +145,7 @@ inline xetla_vector<T, reduce_size> partial_reduce(xetla_vector<T, size> src) {
   xetla_vector<T, reduce_size> ret(0);
 
 #pragma unroll
-  for (int i = 0; i < size / reduce_size; i++) {
+  for (uint32_t i = 0; i < size / reduce_size; i++) {
     auto src_sub = src.xetla_select<reduce_size, 1>(i * reduce_size);
     ret += src_sub;
   }
@@ -159,10 +159,10 @@ template <typename mat_t>
 struct tile_mask_t {
   using accum_t = typename mat_t::dtype;
   static constexpr accum_t kNegInfinity = INFINITY * -1;
-  static constexpr uint32_t tile_size_x = mat_t::tile_size_x;
-  static constexpr uint32_t tile_size_y = mat_t::tile_size_y;
-  static constexpr uint32_t block_size_x = mat_t::block_size_x;
-  static constexpr uint32_t block_size_y = mat_t::block_size_y;
+  static constexpr int32_t tile_size_x = mat_t::tile_size_x;
+  static constexpr int32_t tile_size_y = mat_t::tile_size_y;
+  static constexpr int32_t block_size_x = mat_t::block_size_x;
+  static constexpr int32_t block_size_y = mat_t::block_size_y;
   static constexpr int32_t num_block_x = mat_t::num_block_x;
   static constexpr uint32_t block_elems = mat_t::block_elems;
 
@@ -172,7 +172,7 @@ struct tile_mask_t {
 #pragma unroll
       for (int j = 0; j < num_block_x; j++) {
         int start_x = j * block_size_x;
-        int num_keep_blk = std::max(0, num_keep - start_x);
+        int32_t num_keep_blk = std::max(0, num_keep - start_x);
 
         if (num_keep_blk < block_size_x) {
           xetla_mask<block_size_x> mask =
@@ -183,7 +183,7 @@ struct tile_mask_t {
                       (i * num_block_x + j) * block_elems)
                   .xetla_format<accum_t, block_size_y, block_size_x>();
 #pragma unroll
-          for (int k = 0; k < block_size_y; k++) {
+          for (uint32_t k = 0; k < block_size_y; k++) {
             src_sub.row(k).xetla_merge(kNegInfinity, mask);
           }
         }
