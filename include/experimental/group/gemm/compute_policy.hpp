@@ -140,7 +140,7 @@ struct compute_policy_int4_dequantize<
   static constexpr uint32_t block_bytes_x_a = is_col_major_b ? 256 : 32;
   static constexpr uint32_t block_size_x_a =
       block_bytes_x_a / sizeof(dtype_mma_a);
-  static constexpr uint32_t block_size_x_b = is_col_major_b ? 1 : 32;
+  static constexpr uint32_t block_size_x_b = is_col_major_b ? 8 : 32;
   static constexpr uint32_t block_bytes_y_b = is_col_major_b ? 256 : 32;
   static constexpr uint32_t block_size_y_b =
       block_bytes_y_b / sizeof(dtype_mma_b);
