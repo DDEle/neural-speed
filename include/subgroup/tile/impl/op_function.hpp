@@ -128,6 +128,95 @@ elemwise_cvt(T_dst& dst, T_src& src, float scale) {
       xetla_cvt<typename T_dst::dtype, typename T_src::dtype>(src.reg, scale);
 }
 
+template <int e, int m, typename T, int N, bool inf_nan>
+__XETLA_API xetla_vector<uint8_t, N> elewise_cvt_to_fp8(
+    xetla_vector<T, N> from) {
+  static_assert(false, "Not implemented yet");
+  // static_assert(e + m == 7, "e + m should be 7");
+  // static_assert(
+  //     std::is_same_v<T, float> || std::is_same_v<T, fp16>,
+  //     "T should be float or fp16");
+  // constexpr int from_m = std::is_same_v<T, float> ? 23 : 10;
+  // constexpr int from_e = std::is_same_v<T, float> ? 8 : 5;
+  // constexpr uint32_t from_m_mask = (1 << from_m) - 1;
+  // constexpr uint32_t from_e_mask = (1 << from_e) - 1;
+  // constexpr int32_t from_bias = (1 << (from_e - 1)) - 1;
+  // constexpr int32_t from_denormal_exp = 1 - from_bias;
+  // constexpr int32_t f8_bias = (1 << (e - 1)) - 1;
+  // constexpr int32_t f8_denormal_exp = 1 - f8_bias;
+  // constexpr int32_t denormal_exp_diff = f8_denormal_exp - from_denormal_exp;
+
+  // using T_uint = get_uint_type_t<sizeof(T)>;
+
+  // xetla_vector<uint32_t, N> uint32_from =
+  //     xetla_cvt<uint32_t>(from.xetla_format<T_uint>());
+
+  // xetla_vector<uint32_t, N> mantissa = uint32_from & from_m_mask;
+  // xetla_vector<uint32_t, N> exponent = (uint32_from >> from_m_mask) &
+  // from_e_mask; xetla_vector<uint32_t, N> sign = head >> (from_m + from_e);
+
+  // static_assert(!inf_nan, "inf_nan is not supported yet");
+
+  // xetla_mask<N> from_denormal = exponent == 0;
+  // constexpr int32_t exp_diff_from_denormal =
+  // f8_denormal_exp-from_denormal_exp;
+
+  // xetla_vector<int32_t, N> normal_exp = // actual exp if from is normal
+  //     exponent.xetla_format<int32_t>() - from_bias.xetla_format<int32_t>();
+  // xetla_mask<N> from_normal_f8_denormal = normal_exp <= f8_denormal_exp;
+
+  // xetla_vector<int32_t, N> exp_diff = 0; // both from and to are normal
+  // exp_diff.xetla_merge(f8_denormal_exp-normal_exp, from_normal_f8_denormal);
+  // exp_diff.xetla_merge(exp_diff_from_denormal, from_denormal);
+
+  // // add the implicit 1 into mantissa if from it normal
+  // mantissa.xetla_merge(mantissa | (1 << from_m), !from_denormal);
+
+  // TODO
+}
+
+template <int e, int m, typename T, int N, bool inf_nan>
+__XETLA_API xetla_vector<T, N> elewise_cvt_from_fp8(
+    xetla_vector<uint8_t, N> from) {
+  static_assert(false, "Not implemented yet");
+  // static_assert(e + m == 7, "e + m should be 7");
+  // static_assert(
+  //     std::is_same_v<T, float> || std::is_same_v<T, fp16>,
+  //     "T should be float or fp16");
+  // constexpr int to_m = std::is_same_v<T, float> ? 23 : 10;
+  // constexpr int to_e = std::is_same_v<T, float> ? 8 : 5;
+  // constexpr uint32_t to_m_mask = (1 << to_m) - 1;
+  // constexpr uint32_t to_e_mask = (1 << to_e) - 1;
+  // constexpr int32_t to_bias = (1 << (to_e - 1)) - 1;
+  // constexpr int32_t to_denormal_exp = 1 - to_bias;
+  // constexpr uint8_t  from_m_mask = (1 << m) - 1;
+  // constexpr uint8_t  from_e_mask = (1 << e) - 1;
+  // constexpr int32_t f8_bias = (1 << (e - 1)) - 1;
+  // constexpr int32_t f8_denormal_exp = 1 - f8_bias;
+  // constexpr int32_t denormal_exp_diff = f8_denormal_exp - to_denormal_exp;
+
+  // xetla_vector<uint32_t, N> sign = elemwise_cvt<uint32_t>(head >> (e + m));
+  // xetla_vector<uint32_t, N> mantissa = elemwise_cvt<uint32_t>(from &
+  // from_m_mask); xetla_vector<int32_t, N> exponent =
+  // elemwise_cvt<uint32_t>((from >> from_m_mask) &
+  // from_e_mask).xetla_format<int32_t>();
+
+  // static_assert(!inf_nan, "inf_nan is not supported yet");
+
+  // xetla_vector<T, N> result = 0;
+
+  // result.xetla_merge(from, from == 0); // if (from ==0) result = from
+  // return result;
+}
+
+template <int N>
+__XETLA_API xetla_vector<T, N> elewise_cvt_from_fp8<5, 2, fp16, N, false>(
+    xetla_vector<uint8_t, N> from) {
+  xetla_vector<uint16_t, N> from_u16 = elemwise_cvt<uint16_t>(from);
+  auto ret = xetla_shl<uint16_t>(from_u16, 8);
+  return ret.xetla_format<fp16>()
+}
+
 /// @brief Converts tiled layout to vnni_tiled layout format.
 ///
 /// @tparam T Is the tile data type.

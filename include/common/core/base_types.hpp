@@ -93,6 +93,16 @@ struct mx_fp4 {
   }
 };
 
+template<int e, int m>
+struct fp8 {
+  uint8_t data;
+  fp8() = default;
+  fp8(uint8_t val) {
+    data = val;
+  }
+};
+}
+
 template <typename T>
 struct get_packed_num {
   static constexpr uint32_t value = 1;
