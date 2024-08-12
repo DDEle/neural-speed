@@ -41,7 +41,7 @@ class fmha_forward_t {
     scalar_t* O_ptr; // raw: [B, F, N, H]; permute: [B, N, F, H] - output
     accum_t* L_ptr; // logsum softmax: [B, N, F]
     // Dimension size
-    uint32_t uB;
+    uint32_t uB; // bias/attn_mask: [B, N, F, T] - stride provided
     uint32_t uN;
     uint32_t uNkv;
     uint32_t uH;
@@ -59,6 +59,7 @@ class fmha_forward_t {
     accum_t dp_prob;
     accum_t dp_scale;
     uint32_t uAT;
+    // attn_mask_padded_block_size
     uint32_t uMT;
     uint64_t seed;
     uint64_t offset;
@@ -144,6 +145,8 @@ class fmha_forward_t {
   static constexpr uint32_t kSgBr = fmha_policy::kSgBr;
   static constexpr uint32_t kSgBc = fmha_policy::kSgBc;
   static constexpr uint32_t kSgHm = fmha_policy::kSgHm;
+  static constexpr bool group_kBr = fmha_policy::group_kBr;
+  // if (group_kBr) { assert kBr == uN / uNkv; }
 
   using tile_shape_BrBc = group::tile_shape_t<kBc, kBr, kSgBc, kSgBr>;
   using tile_shape_BrHm = group::tile_shape_t<kHm, kBr, kSgHm, kSgBr>;
@@ -248,10 +251,27 @@ class fmha_forward_t {
 
       // mem desc variables
       uint32_t gid = item.get_group(0);
-      uint32_t batch_id = gid / args.uN; // get batch idx
-      uint32_t head_id = gid % args.uN; // get head idx
+      uint32_t batch_id, head_id, head_id_kv;
+      if constexpr (group_kBr) {
+        // assert kbr == uN / uNkv
+        batch_id = gid / args.uNkv;
+        head_id_kv = gid % args.uNkv;
+        head_id = head_id_kv * kBr;
+      } else {
+        batch_id = gid / args.uN;
+        head_id = gid % args.uN;
+        head_id_kv = head_id / (args.uN / args.uNkv);
+      }
 
-      if constexpr (kSeqLast) { // 2d mem: [F, BxNxH]
+      if constexpr (!kVarlen && group_kBr) { // [1, B, N, H] or [B, 1, N, H]
+        // assert item.get_group(1) == 0
+        const size_t QO_offset =
+            batch_id * args.uN * args.uH + head_id * args.uH;
+        mem_desc_Qi.init(
+            args.Q_ptr + QO_offset, {args.uH, kBr, args.uH}, {0, 0});
+        mem_desc_Oi.init(
+            args.O_ptr + QO_offset, {args.uH, kBr, args.uH}, {0, 0});
+      } else if constexpr (kSeqLast && !group_kBr) { // 2d mem: [F, BxNxH]
         // startF
         int32_t start_y = item.get_group(1) * kBr;
         uint32_t end_y = start_y + kBr;
@@ -273,6 +293,7 @@ class fmha_forward_t {
             {end_x, end_y, b_stride * args.uB},
             {start_acc, start_y});
       } else if constexpr (kVarlen) {
+        static_assert(!group_kBr, "group_kBr not available with kVarlen");
         int32_t start_y = args.cu_seqlen_q[batch_id] + item.get_group(1) * kBr;
         uint32_t end_y = start_y + kBr;
         int32_t limit_y = args.cu_seqlen_q[batch_id + 1];
@@ -287,7 +308,7 @@ class fmha_forward_t {
 
         mem_desc_Oi.init(
             args.O_ptr, {end_x, end_y, ld_qo}, {start_acc, start_y});
-      } else { // 2d mem: [BxF, NxH]
+      } else if constexpr (!kSeqLast && !group_kBr) { // 2d mem: [BxF, NxH]
         // startF
         int32_t start_y = batch_id * args.uF + item.get_group(1) * kBr;
         uint32_t end_y = start_y + kBr;
@@ -303,14 +324,18 @@ class fmha_forward_t {
             args.Q_ptr, {end_acc, end_y, ld_qo}, {start_acc, start_y});
         mem_desc_Oi.init(
             args.O_ptr, {end_acc, end_y, ld_qo}, {start_acc, start_y});
+      } else {
+        static_assert(false, "Unexpected Q/O memory layout!");
       }
 
-      int32_t start_x_ml = item.get_group(1) * kBr + sg_idy * kSgBr;
-      int32_t start_y_ml = gid;
-      mem_desc_Li.init(
-          args.L_ptr,
-          {args.uF, args.uB * args.uN, args.uF},
-          {start_x_ml, start_y_ml});
+      if constexpr (kIsTraining) {
+        int32_t start_x_ml = item.get_group(1) * kBr + sg_idy * kSgBr;
+        int32_t start_y_ml = gid;
+        mem_desc_Li.init(
+            args.L_ptr,
+            {args.uF, args.uB * args.uN, args.uF},
+            {start_x_ml, start_y_ml});
+      }
       mem_desc_Qi_L.init(Qi_slm, {kHm, kBr, kHm}, {0, 0});
       mem_desc_Pij_L.init(Pij_slm, {kBc, kBr, kBc}, {0, 0});
     }
@@ -321,14 +346,20 @@ class fmha_forward_t {
         arguments_t& args,
         uint32_t startT) {
       uint32_t gid = item.get_group(0);
-      uint32_t batch_id = gid / args.uN; // get batch idx
-      uint32_t head_id = gid % args.uN; // get head idx
-      uint32_t head_id_kv =
-          head_id / (args.uN / args.uNkv); // get head idx for kv
-
-      // TODO: what's this startT for
+      uint32_t batch_id, head_id, head_id_kv;
+      if constexpr (group_kBr) {
+        // assert kbr == uN / uNkv
+        batch_id = gid / args.uNkv;
+        head_id_kv = gid % args.uNkv;
+        head_id = head_id_kv * kBr;
+      } else {
+        batch_id = gid / args.uN;
+        head_id = gid % args.uN;
+        head_id_kv = head_id / (args.uN / args.uNkv);
+      }
 
       if constexpr (kSeqLast) {
+        // [T, B, Nkv, H]
         int32_t start_x = startT;
         uint32_t end_x = start_x + kBc;
         uint32_t boundary_x = args.uT;
@@ -413,6 +444,7 @@ class fmha_forward_t {
         uint32_t boundary_x = args.uMT;
         end_x = end_x > boundary_x ? boundary_x : end_x;
 
+        // assert(!group_kBr || item.get_group(1) == 0)
         int32_t offset =
             (batch_id * args.bias_strideB + head_id * args.bias_strideN) /
             args.uMT;
@@ -420,15 +452,18 @@ class fmha_forward_t {
             offset + (args.is_bias_add ? 0 : item.get_group(1) * kBr);
         uint32_t end_y = args.is_bias_add ? start_y : start_y + kBr;
         uint32_t boundary_y = args.is_bias_add ? start_y : offset + args.uF;
-        end_y = end_y > boundary_y ? boundary_y : end_y;
+        end_y = std::min(boundary_y, end_y);
 
         mem_desc_Bij.init(
-            args.B_ptr, {end_x, end_y, args.uMT}, {start_x, start_y});
+            args.B_ptr,
+            {end_x, end_y, group_kBr ? args.bias_strideN : args.uMT},
+            {start_x, start_y});
       }
 
       // B, 1, 1, T
       // batch_id * T + startT
       if constexpr (kUseBias && kIsCausal) {
+        static_assert(!group_kBr, "group_kBr not available with kIsCausal");
         int32_t batch_start = batch_id * args.uMT;
         int32_t start_x = batch_start + startT;
         uint32_t end_x = startT + kBc;
@@ -441,6 +476,7 @@ class fmha_forward_t {
       }
 
       if constexpr (kIsDropout) {
+        static_assert(!group_kBr, "group_kBr not available with kIsDropout");
         if (args.Dp_ptr) {
           int32_t start_x = startT;
           uint32_t end_x = args.uT;
@@ -904,13 +940,19 @@ class fmha_forward_t {
   /// @brief Helper function to get the nd_range under the Fmha policy.
   /// @return Expected nd_range.
   static sycl::nd_range<3> get_nd_range(
-      uint32_t total_batches,
+      uint32_t total_batches, // uN * batchsize * beamsize
       uint32_t num_queries) {
     // local range
     sycl::range<3> local_range = sycl::range<3>{1, wg_size_y, wg_size_x};
     // group range
     uint32_t group_range_m = (num_queries + kBr - 1) / kBr;
-    sycl::range<3> group_range{total_batches, group_range_m, 1};
+    assert((
+        "num_q must be 1 to enable group_kBr", !group_kBr || num_queries == 1));
+
+    // if group_kBr, a workgroup will process a group with kBr heads of Q/O
+    uint32_t batch_range = group_kBr ? (total_batches / kBr) : total_batches;
+
+    sycl::range<3> group_range{batch_range, group_range_m, 1};
     return sycl::nd_range<3>{group_range * local_range, local_range};
   };
   // ================= // Entry of the functor // ================= //
@@ -963,11 +1005,15 @@ class fmha_forward_t {
       // compute Sij
       matAccSij_t matAccSij(0);
       gemm_Sij(matAccSij, args);
+      // if (item.get_global_linear_id() == 1)
+      //   dump_mat(matAccSij);
       // apply mask
       apply_mask(item, matAccSij, args, startF, startT);
       // softmax
       dp_mask_tile_t mask_in;
       softmax_fwd(matAccSij, matAccOi, mask_in, args);
+      // if (item.get_global_linear_id() == 1)
+      //   dump_mat(matAccSij);
       // compute Oi
       gemm_Oi(matAccOi, args, startT);
     }

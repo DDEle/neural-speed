@@ -8,6 +8,9 @@ struct fmha_policy_base {
   static constexpr uint32_t accum_step = 32;
   static constexpr uint32_t stages = 3;
   static constexpr uint32_t sync_freq = 0;
+
+  // mapping intra-group index to Br
+  static constexpr bool group_kBr = false;
 };
 
 /*
@@ -158,6 +161,16 @@ struct fmha_policy_1x512x128 : fmha_policy_base {
   static constexpr uint32_t thread_num = (kBr / kSgBr) * (kBc / kSgBc);
 };
 
+struct fmha_policy_4x256x128 : fmha_policy_base {
+  static constexpr uint32_t kBr = 4;
+  static constexpr uint32_t kSgBr = 4;
+  static constexpr uint32_t kBc = 256;
+  static constexpr uint32_t kSgBc = 16;
+  static constexpr uint32_t kHm = 128;
+  static constexpr uint32_t kSgHm = 8;
+  static constexpr uint32_t thread_num = (kBr / kSgBr) * (kBc / kSgBc);
+};
+
 struct fmha_policy_32x128x128 : fmha_policy_base {
   static constexpr uint32_t kBr = 32;
   static constexpr uint32_t kSgBr = 8;
@@ -171,5 +184,9 @@ struct fmha_policy_32x128x128 : fmha_policy_base {
 template <typename P>
 struct stage0 : P {
   static constexpr uint32_t stages = 0;
+};
+template <typename P>
+struct use_group_kBr : P {
+  static constexpr bool group_kBr = true;
 };
 } // namespace gpu::xetla

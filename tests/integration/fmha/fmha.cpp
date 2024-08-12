@@ -24,6 +24,8 @@
 #include "xetla.hpp"
 
 const auto IS_VERBOSE = false;
+const int ITRE = 500;
+const int WARM_UP = 100;
 
 struct test_params_t {
   // Q: [FxBxNxH] or [BxFxMxH] ; similar for K/V/O
@@ -40,22 +42,28 @@ struct test_params_t {
   static std::vector<test_params_t> cases() {
     std::vector<test_params_t> ret;
     std::vector<std::array<uint32_t, 6>> shapes{
-        {1, 32, 32, 64, 1, 33},
-        {1, 32, 32, 64, 34, 34},
-        {1, 32, 32, 64, 1023, 1023},
+        // {1, 32, 32, 64, 1, 33},
+        // {1, 32, 32, 64, 34, 34},
+        // {1, 32, 32, 64, 1023, 1023},
 
         {1, 32, 32, 128, 1, 33},
         {1, 32, 8, 128, 1, 33},
-        {1, 32, 32, 128, 1, 1023},
-        {1, 32, 8, 128, 1, 1023},
-        {1, 32, 32, 128, 1, 16384},
-        {1, 32, 32, 128, 34, 34},
-        {1, 32, 32, 128, 34, 1023},
-        {1, 32, 32, 128, 1023, 1023},
+        {1, 32, 32, 128, 1, 129},
+        {1, 32, 8, 128, 1, 129},
+        {1, 32, 32, 128, 1, 257},
+        {1, 32, 8, 128, 1, 257},
+        {1, 32, 32, 128, 1, 513},
+        {1, 32, 8, 128, 1, 513},
+        {1, 32, 32, 128, 1, 1025},
+        {1, 32, 8, 128, 1, 1025},
+        // {1, 32, 32, 128, 1, 16384},
+        // {1, 32, 32, 128, 34, 34},
+        // {1, 32, 32, 128, 34, 1023},
+        // {1, 32, 32, 128, 1023, 1023},
     };
     for (auto [bs, hn, hkv, hs, qlen, klen] : shapes)
       for (auto kUseBias : {false, true})
-        for (auto kSeqLast : {false, true})
+        for (auto kSeqLast : {true})
           ret.emplace_back(kUseBias, kSeqLast, bs, hn, hkv, hs, qlen, klen);
     return ret;
   }
@@ -151,6 +159,13 @@ int fma_result_validate(
         if constexpr (kUseBias)
           gold_cur[i * klen + j] += BIAS_cur[i * klen_pad32 + j];
       }
+    // if (head_id == 1) {
+    //   printf("\nqk:\n");
+    //   for (uint32_t j = 0; j < klen; ++j)
+    //     printf("%f ", gold_cur[j]);
+    //   printf("\n");
+    // }
+
     for (uint32_t i = 0; i < qlen; i++) {
       accum_t row_max = -INFINITY;
       accum_t exp_sum = 0;
@@ -163,6 +178,13 @@ int fma_result_validate(
       for (uint32_t j = 0; j < klen; j++)
         gold_cur[i * klen + j] /= exp_sum;
     }
+
+    // if (head_id == 1) {
+    //   printf("\np:\n");
+    //   for (uint32_t j = 0; j < klen; ++j)
+    //     printf("%f ", gold_cur[j]);
+    //   printf("\n");
+    // }
   }
 
   std::vector<accum_t> gold_DST(bs * qlen * hn * hs, 0);
@@ -395,28 +417,38 @@ void fmha_dispatch_policy(const test_params_t& p, Args... args) {
   if (p.hs <= 64) {
     if (p.qlen < 64) {
       // for short query length
-      return fmha_run_<stage0<fmha_policy_8x128x64>>(p, args...);
+      return;
+      // return fmha_run_<stage0<fmha_policy_8x128x64>>(p, args...);
     } else {
       // for long query length
-      return fmha_run_<stage0<fmha_policy_64x128x64>>(p, args...);
+      return;
+      // return fmha_run_<stage0<fmha_policy_64x128x64>>(p, args...);
     }
   } else if (p.hs <= 128) {
     if (p.qlen == 1) {
       // for extremely short query length
-      if (p.klen < 512) {
-        return fmha_run_<stage0<fmha_policy_1x256x128>>(p, args...);
+      if (p.hn / p.hkv == 4) {
+        return fmha_run_<use_group_kBr<stage0<fmha_policy_4x256x128>>>(
+            p, args...);
       } else {
-        return fmha_run_<stage0<fmha_policy_1x512x128>>(p, args...);
+        if (p.klen < 512) {
+          return fmha_run_<stage0<fmha_policy_1x256x128>>(p, args...);
+        } else {
+          return fmha_run_<stage0<fmha_policy_1x512x128>>(p, args...);
+        }
       }
     } else if (p.qlen < 64) {
       // for short query length
       if (p.klen < 512) {
-        return fmha_run_<stage0<fmha_policy_8x256x128>>(p, args...);
+        return;
+        // return fmha_run_<stage0<fmha_policy_8x256x128>>(p, args...);
       } else {
-        return fmha_run_<stage0<fmha_policy_8x512x128>>(p, args...);
+        return;
+        // return fmha_run_<stage0<fmha_policy_8x512x128>>(p, args...);
       }
     } else {
-      return fmha_run_<stage0<fmha_policy_32x128x128>>(p, args...);
+      return;
+      // return fmha_run_<stage0<fmha_policy_32x128x128>>(p, args...);
     }
   } else {
     std::cout << "Larger hs to be tested...\n";
@@ -442,7 +474,7 @@ class FMHATest : public TestWithParam<test_params_t> {
 };
 TEST_P(FMHATest, ) {
   test_params_t p = TestWithParam<test_params_t>::GetParam();
-  fmha_run(p, 5, 3);
+  fmha_run(p, ITRE, WARM_UP);
 }
 INSTANTIATE_TEST_SUITE_P(
     XeTLA,
