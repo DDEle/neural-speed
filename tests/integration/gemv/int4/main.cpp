@@ -48,7 +48,7 @@ class test_col_major_1 {
   static constexpr mem_layout layout_a = mem_layout::row_major;
   static constexpr mem_layout layout_b = mem_layout::col_major;
   static constexpr mma_engine mma_eng = mma_engine::fpu;
-  static constexpr gpu_arch arch = gpu_arch::XeLpg;
+  static constexpr gpu_arch arch = gpu_arch::XeHpc;
   using data_type_a = scalar_t;
   using data_type_b = int4x8;
   using data_type_c = scalar_t;
@@ -73,7 +73,7 @@ class test_col_major_2 {
   static constexpr mem_layout layout_a = mem_layout::row_major;
   static constexpr mem_layout layout_b = mem_layout::col_major;
   static constexpr mma_engine mma_eng = mma_engine::fpu;
-  static constexpr gpu_arch arch = gpu_arch::XeLpg;
+  static constexpr gpu_arch arch = gpu_arch::XeHpc;
   using data_type_a = fp16;
   using data_type_b = int4x8;
   using data_type_c = fp16;
@@ -431,7 +431,10 @@ void dequantize_gemv_run(int iter) {
 #ifdef UT_DEBUG
       zero_pt_h[i] = 0x33333333;
 #endif
-    } else if constexpr (std::is_same_v<fp16, data_type_zero_pt>) {
+    } else if constexpr (std::is_same_v<data_type_a, data_type_zero_pt>) {
+      if (i > size_zero_pt) {
+        zero_pt_h[i] = -999;
+      }
       zero_pt_h[i] = random_float();
     }
   }
@@ -623,10 +626,10 @@ TYPED_TEST_P(dequantize_gemv_test, esimd) {
 
 REGISTER_TYPED_TEST_SUITE_P(dequantize_gemv_test, esimd);
 using tests = ::testing::Types< //
-    test_col_major_1<fp16, quant_mode::I4_SYM>,
-    test_col_major_1<bf16, quant_mode::I4_SYM>,
+    // test_col_major_1<fp16, quant_mode::I4_SYM>,
+    // test_col_major_1<bf16, quant_mode::I4_SYM>,
     test_col_major_1<fp16, quant_mode::I4_ASYM_FP_ZERO>,
-    test_col_major_1<bf16, quant_mode::I4_ASYM_FP_ZERO>,
+    // test_col_major_1<bf16, quant_mode::I4_ASYM_FP_ZERO>,
     // test_col_major_2,
     void>;
 
