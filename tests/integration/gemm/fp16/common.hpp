@@ -47,7 +47,7 @@ class TestBase {
   }
 
   static constexpr gpu_arch gpu_arch = gpu_arch::XeHpc;
-  //static constexpr gpu_arch gpu_arch = gpu_arch::XeHpg;
+  // static constexpr gpu_arch gpu_arch = gpu_arch::XeHpg;
   static constexpr uint32_t global_kslicing = 1;
   static constexpr uint32_t local_kslicing = 1;
   static constexpr uint32_t wg_num_n = 64;
@@ -72,7 +72,7 @@ class TestBaseFP16x : public TestBase {
 };
 
 class Test0 : public TestBaseFP16f {
-  public:
+ public:
   static constexpr size_t mat_m = 1;
   static constexpr size_t mat_n = 64;
   static constexpr size_t mat_k = 8192;

@@ -1,0 +1,16 @@
+name: clang-format Check
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  formatting-check:
+    name: Formatting Check
+    runs-on: self-hosted
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Run clang-format style check.
+      run: |
+        pwd
+        ls -lah
+        bash .github/workflows/clang-format.sh
+

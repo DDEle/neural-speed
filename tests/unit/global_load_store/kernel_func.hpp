@@ -186,7 +186,7 @@ struct global_load_store_scatter_nelt2 {
         xetla_vector_gen<uint32_t, SIMD>(0, 1);
     offsets = offsets * sizeof(dtype);
 
-    xetla_vector<dtype, SIMD * 2> A_load_vec = xetla_load_global<
+    xetla_vector<dtype, SIMD* 2> A_load_vec = xetla_load_global<
         dtype,
         SIMD * 2,
         2,

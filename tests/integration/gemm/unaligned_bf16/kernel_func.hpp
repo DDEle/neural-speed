@@ -68,7 +68,11 @@ struct unaligned_gemm_test_func {
   using epilogue_t = epilogue_t<
       epilogue_policy_unaligned<arch_tag>,
       tile_shape,
-      mem_desc_t<dtype_c, mem_layout::row_major, mem_space::global, ldc_alignment>>;
+      mem_desc_t<
+          dtype_c,
+          mem_layout::row_major,
+          mem_space::global,
+          ldc_alignment>>;
 
   using group_swizzle = gpu::xetla::kernel::group_swizzle_default<arch_tag>;
   using dispatch_policy =

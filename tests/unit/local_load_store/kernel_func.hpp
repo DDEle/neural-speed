@@ -136,7 +136,7 @@ struct local_load_store_scatter_nelt2 {
         xetla_vector_gen<uint32_t, SIMD>(0, 1);
     offsets = offsets * sizeof(dtype);
 
-    xetla_vector<dtype, SIMD * 2> A_load_vec = xetla_load_global<
+    xetla_vector<dtype, SIMD* 2> A_load_vec = xetla_load_global<
         dtype,
         SIMD * 2,
         2,
@@ -145,7 +145,7 @@ struct local_load_store_scatter_nelt2 {
 
     xetla_store_local<dtype, 2, data_size::default_size, SIMD>(
         offsets, A_load_vec);
-    xetla_vector<dtype, SIMD * 2> slm_vec =
+    xetla_vector<dtype, SIMD* 2> slm_vec =
         xetla_load_local<dtype, 2, data_size::default_size, SIMD>(offsets);
 
     xetla_store_global<dtype, SIMD * 2, 2, cache_hint::none, cache_hint::none>(

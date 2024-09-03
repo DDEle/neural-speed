@@ -47,7 +47,7 @@ class TestBase {
   }
 
   static constexpr gpu_arch gpu_arch = gpu_arch::XeHpc;
-  //static constexpr gpu_arch gpu_arch = gpu_arch::XeHpg;
+  // static constexpr gpu_arch gpu_arch = gpu_arch::XeHpg;
   static constexpr uint32_t global_kslicing = 1;
   static constexpr uint32_t local_kslicing = 1;
   static constexpr uint32_t wg_num_n = 64;
