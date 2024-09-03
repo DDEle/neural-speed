@@ -585,8 +585,7 @@ class int4_mlp_gate_mul_up_fwd_t {
     uint32_t inner_loop_count = (wg_tile_k + k_stride - 1) / k_stride;
 
     gemm_args_t up_proj_args, gate_proj_args;
-    if constexpr (
-        gemm_t::compute_policy::quant_mode == quant_mode::I4_SYM) {
+    if constexpr (gemm_t::compute_policy::quant_mode == quant_mode::I4_SYM) {
       ASSIGN_SYM_GEMM_ARG(
           up_proj_args, mem_desc_up_proj, mem_desc_up_proj_scale)
       ASSIGN_SYM_GEMM_ARG(

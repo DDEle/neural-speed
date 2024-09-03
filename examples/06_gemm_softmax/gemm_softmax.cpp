@@ -201,7 +201,7 @@ void gemm_softmax_run(uint32_t iter) {
           // should larger than 8
           static constexpr uint32_t k_iter_num = 16;
           static constexpr gpu_arch arch_tag = gpu_arch::XeHpc;
-          //static constexpr gpu_arch arch_tag = gpu_arch::XeHpg;
+          // static constexpr gpu_arch arch_tag = gpu_arch::XeHpg;
 
           // Step 1: define Micro-kernel's configuration
           using wg_shape = shape<wg_tile_n, wg_tile_m>;
