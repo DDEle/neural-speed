@@ -1,10 +1,12 @@
 source .github/workflows/change_color.sh
 
-pip install clang-format==12.*
 LOG_DIR="logs"
 LOG_PATH=${LOG_DIR}/clang-format.log
 mkdir -p ${LOG_DIR}
+rm -f ${LOG_PATH}
 
+pip install clang-format==12.* --force-reinstall
+pip list
 python tools/clang-format.py
 
 echo "run git diff"

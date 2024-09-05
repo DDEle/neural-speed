@@ -12,5 +12,5 @@ jobs:
       run: |
         pwd
         ls -lah
-        bash .github/workflows/clang-format.sh
+        bash -ex .github/workflows/clang-format.sh
 

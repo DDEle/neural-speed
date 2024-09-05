@@ -12,6 +12,7 @@ build
 # test output of ci
 /_output
 /_report
+/logs
 
 # windows
 .vs

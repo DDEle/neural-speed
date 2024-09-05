@@ -24,9 +24,11 @@ elif sys.platform == 'win32':
 
 
 def clang_format_dir(args):
+    subprocess.run([ClangBin, '--version'])
+
     files = glob_files(args.dirs)
     for file in files:
-        cmds = [ClangBin, '-i', '--style=file', file]
+        cmds = [ClangBin, '--verbose', '-i', '--style=file', file]
         subprocess.run(cmds, check=True)
 
 
